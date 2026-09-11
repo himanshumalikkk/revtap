@@ -1,0 +1,6 @@
+{
+  "name": "RevTap",
+  "description": "Turn Every Customer Into an Easy Review Opportunity. Custom NFC and QR Google Review Cards & Signs for U.S. local businesses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
