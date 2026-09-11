@@ -101,9 +101,9 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
           </div>
 
           {/* Center Business Identity & Tap Callout */}
-          <div className="relative z-10 flex flex-col items-center justify-center text-center mt-6">
+          <div className={`relative z-10 flex flex-col items-center justify-center text-center ${compact ? 'mt-2' : 'mt-4'}`}>
             {/* Custom Logo or Default Icon */}
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/80 flex items-center justify-center p-2 mb-3 shadow-inner overflow-hidden">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/80 flex items-center justify-center p-2 mb-2 shadow-inner overflow-hidden">
               {logoUrl ? (
                 <img
                   src={logoUrl}
@@ -118,12 +118,12 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
               )}
             </div>
 
-            <h4 className="font-bold text-lg text-white tracking-tight line-clamp-1 max-w-[240px]">
+            <h4 className="font-bold text-base sm:text-lg text-white tracking-tight line-clamp-1 max-w-[240px]">
               {businessName}
             </h4>
 
             {/* Google Rating indication (compliant neutral presentation) */}
-            <div className="flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-zinc-800/60 border border-zinc-700/50 text-[11px] text-zinc-300">
+            <div className="flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-full bg-zinc-800/60 border border-zinc-700/50 text-[11px] text-zinc-300">
               <span className="font-medium text-white">Review us on</span>
               <span className="font-semibold text-[#4285F4]">G</span>
               <span className="font-semibold text-[#EA4335]">o</span>
@@ -135,12 +135,12 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
           </div>
 
           {/* NFC Tap Target Graphic */}
-          <div className="relative z-10 flex flex-col items-center my-5">
+          <div className={`relative z-10 flex flex-col items-center ${compact ? 'my-2.5' : 'my-4'}`}>
             <div className="relative flex items-center justify-center">
               {/* Outer pulsing ring */}
-              <div className="absolute w-20 h-20 rounded-full border border-zinc-700/40 animate-ping opacity-25" />
-              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-900 border-2 border-zinc-600/70 flex flex-col items-center justify-center shadow-lg">
-                <Wifi className="w-7 h-7 text-zinc-200 rotate-90" />
+              <div className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-zinc-700/40 animate-ping opacity-25" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-900 border-2 border-zinc-600/70 flex flex-col items-center justify-center shadow-lg">
+                <Wifi className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-200 rotate-90" />
               </div>
             </div>
             <span className="mt-2 text-xs font-semibold uppercase tracking-widest text-zinc-200">

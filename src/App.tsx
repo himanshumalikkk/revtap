@@ -9,6 +9,7 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ProblemSection } from './components/ProblemSection';
 import { ProductBenefits } from './components/ProductBenefits';
+import { HardwareShowcase } from './components/HardwareShowcase';
 import { PricingSection } from './components/PricingSection';
 import { HowItWorks } from './components/HowItWorks';
 import { ProductDemo } from './components/ProductDemo';
@@ -111,6 +112,9 @@ export default function App() {
 
           {/* Product Benefits (4 cards) */}
           <ProductBenefits />
+
+          {/* Hardware Showcase - Contactless Suite Photography & Specs */}
+          <HardwareShowcase onOpenOrder={(pkg) => handleOpenOrder(pkg)} />
 
           {/* Pricing Section (Starter $59.99, Business $99.99, Growth $199.99) */}
           <PricingSection onSelectPackage={(pkg) => handleOpenOrder(pkg)} />

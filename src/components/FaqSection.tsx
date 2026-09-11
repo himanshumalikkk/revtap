@@ -36,13 +36,13 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onOpenOrder }) => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center">
-          <span className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
             Frequently Asked Questions
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight mt-2">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             Everything You Need to Know.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600">
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
             Straightforward answers about our hardware, compatibility, and ordering process.
           </p>
         </div>
@@ -60,7 +60,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onOpenOrder }) => {
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
                   className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 cursor-pointer"
                 >
-                  <span className="text-base font-bold text-zinc-950 tracking-tight pr-4">
+                  <span className="font-display text-base sm:text-[17px] font-bold text-zinc-950 tracking-tight pr-4">
                     {faq.q}
                   </span>
                   <div
@@ -73,7 +73,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onOpenOrder }) => {
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 pt-1 text-sm text-zinc-600 leading-relaxed border-t border-zinc-100 animate-in fade-in duration-150">
+                  <div className="px-6 pb-6 pt-1 text-sm sm:text-[15px] text-zinc-600 leading-[1.65] border-t border-zinc-100 animate-in fade-in duration-150">
                     {faq.a}
                   </div>
                 )}
@@ -84,12 +84,12 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onOpenOrder }) => {
 
         {/* Bottom prompt */}
         <div className="mt-12 text-center">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs sm:text-[13px] text-zinc-500 font-medium">
             Ready to streamline your customer review collection?
           </p>
           <button
             onClick={onOpenOrder}
-            className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zinc-950 text-white font-semibold text-sm hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+            className="mt-4 inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-zinc-950 text-white font-bold text-xs sm:text-[13px] tracking-wider uppercase hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
           >
             <span>GET YOUR REV TAP CARD</span>
             <ArrowRight className="w-4 h-4" />

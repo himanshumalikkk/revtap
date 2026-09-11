@@ -44,14 +44,14 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onOpenOrder }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
             Frictionless Onboarding
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight mt-2">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             From Order to Review in 5 Simple Steps.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600">
-            No technical knowledge or mobile app installations required. We handle the setup.
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
+            No technical knowledge or mobile app installations required. We handle the programming and configuration.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onOpenOrder }) => {
                 <div>
                   {/* Step Number */}
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-black tracking-tight text-zinc-300 group-hover:text-zinc-950 transition-colors font-mono">
+                    <span className="font-display text-2xl sm:text-3xl font-black tracking-tight text-zinc-300 group-hover:text-zinc-950 transition-colors">
                       {step.num}
                     </span>
                     <div className="w-9 h-9 rounded-lg bg-zinc-100 text-zinc-800 flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-colors">
@@ -76,17 +76,17 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onOpenOrder }) => {
                   </div>
 
                   {/* Title & Desc */}
-                  <h3 className="text-xs font-bold tracking-wider text-zinc-950 uppercase">
+                  <h3 className="font-display text-[13px] font-bold tracking-wider text-zinc-950 uppercase">
                     {step.title}
                   </h3>
-                  <p className="mt-2 text-xs text-zinc-600 leading-relaxed">
+                  <p className="mt-2 text-xs sm:text-[13px] text-zinc-600 leading-[1.55]">
                     {step.description}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] font-medium text-zinc-400">
+                <div className="mt-6 pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] font-semibold text-zinc-400">
                   <span>Step {idx + 1} of 5</span>
-                  {idx < 4 ? <span className="hidden md:inline">→</span> : <span>Done</span>}
+                  {idx < 4 ? <span className="hidden md:inline text-zinc-400">→</span> : <span className="text-emerald-600 font-bold">Ready</span>}
                 </div>
               </div>
             );
@@ -97,7 +97,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onOpenOrder }) => {
         <div className="mt-14 text-center">
           <button
             onClick={onOpenOrder}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-zinc-900 text-white font-semibold text-sm hover:bg-zinc-800 transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-zinc-950 text-white font-bold text-xs sm:text-[13px] tracking-wider uppercase hover:bg-zinc-800 transition-all shadow-xs cursor-pointer"
           >
             <span>GET STARTED TODAY</span>
             <ArrowRight className="w-4 h-4" />

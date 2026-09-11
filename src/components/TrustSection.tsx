@@ -30,13 +30,13 @@ export const TrustSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
             Pure Product Reliability
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight mt-2">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             Simple for You. Simple for Your Customers.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600">
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
             Straightforward physical hardware configured before delivery, backed by reliable customer care.
           </p>
         </div>
@@ -54,10 +54,10 @@ export const TrustSection: React.FC = () => {
                   <div className="w-11 h-11 rounded-xl bg-white border border-zinc-200 text-zinc-900 flex items-center justify-center mb-5 shadow-2xs">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xs font-extrabold tracking-wider text-zinc-900 uppercase">
+                  <h3 className="font-display text-[13px] font-bold tracking-wider text-zinc-950 uppercase">
                     {block.title}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600 leading-relaxed">
+                  <p className="mt-2 text-sm text-zinc-600 leading-[1.6]">
                     {block.desc}
                   </p>
                 </div>

@@ -338,13 +338,25 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                ============================================================ */}
             {step === 1 && (
               <div>
-                <div className="mb-6">
-                  <h3 className="text-2xl font-extrabold text-zinc-950 tracking-tight">
-                    Step 1: Choose Your RevTap Pack
-                  </h3>
-                  <p className="text-sm text-zinc-600 mt-1">
-                    Select the quantity of custom NFC + QR signs configured for your location.
-                  </p>
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-2xl font-extrabold text-zinc-950 tracking-tight">
+                      Step 1: Choose Your RevTap Pack
+                    </h3>
+                    <p className="text-sm text-zinc-600 mt-1">
+                      Select the quantity of custom NFC + QR signs configured for your location.
+                    </p>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0">
+                    <img
+                      src="/src/assets/images/tap_stand_hero_1789160699187.jpg"
+                      alt="Sign preview"
+                      referrerPolicy="no-referrer"
+                      className="w-8 h-8 rounded-lg object-cover border border-zinc-200"
+                    />
+                    <span className="text-xs font-semibold text-zinc-700">Pre-Configured U.S. Hardware</span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -424,7 +436,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-7 space-y-4">
                   <div>
-                    <h3 className="text-2xl font-extrabold text-zinc-950 tracking-tight">
+                    <h3 className="font-display text-2xl font-extrabold text-zinc-950 tracking-tight">
                       Step 2: Business Information
                     </h3>
                     <p className="text-sm text-zinc-600 mt-1">
@@ -636,7 +648,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
             {step === 3 && (
               <div className="max-w-2xl mx-auto space-y-4">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-zinc-950 tracking-tight">
+                  <h3 className="font-display text-2xl font-extrabold text-zinc-950 tracking-tight">
                     Step 3: U.S. Shipping Destination
                   </h3>
                   <p className="text-sm text-zinc-600 mt-1">
@@ -794,7 +806,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
             {step === 4 && (
               <div className="max-w-2xl mx-auto space-y-6">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-zinc-950 tracking-tight">
+                  <h3 className="font-display text-2xl font-extrabold text-zinc-950 tracking-tight">
                     Step 4: Order Summary
                   </h3>
                   <p className="text-sm text-zinc-600 mt-1">

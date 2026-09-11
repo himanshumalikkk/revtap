@@ -10,13 +10,13 @@ export const ProductDemo: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
             In-Store Experience
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight mt-2">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             Tap. Open. Review.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600">
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
             Witness how effortless customer reviews become right at your checkout desk or tabletop.
           </p>
 
@@ -83,31 +83,34 @@ export const ProductDemo: React.FC = () => {
             {/* Left: Realistic Visual or Phone Mockup */}
             <div className="lg:col-span-7 rounded-2xl bg-zinc-900 border border-zinc-800 p-4 sm:p-6 flex flex-col items-center justify-center min-h-[360px] relative overflow-hidden">
               {activeStep === 1 && (
-                <div className="relative w-full h-[320px] rounded-xl overflow-hidden flex items-center justify-center">
-                  <img
-                    src="/src/assets/images/revtap_tap_action_1789136220108.jpg"
-                    alt="Customer tapping smartphone on RevTap sign"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-                        {activeMode === 'nfc' ? (
-                          <Wifi className="w-5 h-5 rotate-90" />
-                        ) : (
-                          <QrCode className="w-5 h-5" />
-                        )}
+                <div className="w-full flex flex-col gap-3.5">
+                  {/* Clean image of customer tapping sign - zero text overlap */}
+                  <div className="w-full h-[260px] sm:h-[320px] rounded-xl overflow-hidden border border-zinc-700/80 bg-black shadow-inner">
+                    <img
+                      src="/src/assets/images/phone_tap_action_1789160715058.jpg"
+                      alt="Customer tapping smartphone on RevTap sign"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover object-center rounded-xl"
+                    />
+                  </div>
+
+                  {/* Clean status indicator strictly below the image */}
+                  <div className="w-full rounded-xl bg-zinc-800/90 border border-zinc-700/80 p-3.5 flex items-center gap-3 shadow-xs">
+                    <div className="w-9 h-9 rounded-lg bg-zinc-700 text-amber-400 flex items-center justify-center shrink-0 border border-zinc-600/60">
+                      {activeMode === 'nfc' ? (
+                        <Wifi className="w-5 h-5 rotate-90" />
+                      ) : (
+                        <QrCode className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                        {activeMode === 'nfc'
+                          ? 'Instant Contactless NFC Detection'
+                          : 'Camera Scanned Universal QR Code'}
                       </div>
-                      <div>
-                        <div className="text-sm font-bold text-white">
-                          {activeMode === 'nfc'
-                            ? 'Instant NFC Signal Detected'
-                            : 'Camera Scanned Universal QR'}
-                        </div>
-                        <div className="text-xs text-zinc-300">
-                          Takes less than 1 second
-                        </div>
+                      <div className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+                        Takes less than 1 second • Direct official deep-link
                       </div>
                     </div>
                   </div>

@@ -24,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const navLinks = [
+    { name: 'Hardware', href: '#hardware-showcase' },
     { name: 'How It Works', href: '#how-it-works' },
     { name: 'Pricing', href: '#pricing' },
     { name: "Who It's For", href: '#industries' },
@@ -49,26 +50,26 @@ export const Header: React.FC<HeaderProps> = ({
             <Wifi className="w-4 h-4 rotate-90 text-zinc-100" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold tracking-tight text-zinc-950">
-              Rev<span className="text-zinc-600">Tap</span>
+            <span className="font-display text-xl font-extrabold tracking-[-0.03em] text-zinc-950">
+              Rev<span className="text-zinc-500 font-semibold">Tap</span>
             </span>
           </div>
         </a>
 
         {/* Center/Right Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-7">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-950 transition-colors"
+              className="text-[14px] font-medium tracking-normal text-zinc-600 hover:text-zinc-950 transition-colors"
             >
               {link.name}
             </a>
           ))}
           <button
             onClick={onOpenContact}
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-950 transition-colors cursor-pointer"
+            className="text-[14px] font-medium tracking-normal text-zinc-600 hover:text-zinc-950 transition-colors cursor-pointer"
           >
             Contact
           </button>
@@ -78,10 +79,10 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={onOpenOrder}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-sm font-semibold hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-950 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-950 text-white text-[13px] font-bold tracking-wider uppercase hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-zinc-950 cursor-pointer"
           >
             <span>GET YOUR CARD</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 

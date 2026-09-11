@@ -24,11 +24,14 @@ export const ProblemSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Friction vs. Flow
+          </span>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             Your Customers Shouldn't Have to Search for You.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-relaxed">
-            Even satisfied customers often don't leave a review because the process takes too many steps.
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
+            Even your most satisfied customers often don't leave a review because the traditional search-and-browse flow takes too many steps.
           </p>
         </div>
 
@@ -39,10 +42,10 @@ export const ProblemSection: React.FC = () => {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-zinc-200">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-400">
                     The Old Way
                   </span>
-                  <h3 className="text-xl font-bold text-zinc-800 mt-0.5">
+                  <h3 className="font-display text-xl font-bold tracking-tight text-zinc-900 mt-0.5">
                     Without RevTap
                   </h3>
                 </div>
@@ -100,10 +103,10 @@ export const ProblemSection: React.FC = () => {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-sky-400">
                     The Modern Flow
                   </span>
-                  <h3 className="text-xl font-bold text-white mt-0.5">
+                  <h3 className="font-display text-xl font-bold tracking-tight text-white mt-0.5">
                     With RevTap
                   </h3>
                 </div>

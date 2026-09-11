@@ -37,13 +37,13 @@ export const ProductBenefits: React.FC = () => {
     <section id="benefits" className="py-20 md:py-28 bg-[#FAFAFA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
             Designed for Local Counters
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight mt-2">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-zinc-950 tracking-[-0.03em] leading-[1.15] mt-2">
             One Small Sign. A Simpler Review Experience.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600">
+          <p className="mt-4 text-base sm:text-lg text-zinc-600 leading-[1.6]">
             Engineered specifically to eliminate checkout friction and respect your customers' time.
           </p>
         </div>
@@ -62,15 +62,15 @@ export const ProductBenefits: React.FC = () => {
                     <div className="w-12 h-12 rounded-xl bg-zinc-100 text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors flex items-center justify-center">
                       <Icon className={`w-6 h-6 ${b.iconClass || ''}`} />
                     </div>
-                    <span className="text-[11px] font-semibold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-md">
+                    <span className="text-[11px] font-semibold text-zinc-600 bg-zinc-100 px-2.5 py-1 rounded-md">
                       {b.badge}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-zinc-950 tracking-tight">
+                  <h3 className="font-display text-[17px] font-bold text-zinc-950 tracking-tight">
                     {b.title}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600 leading-relaxed">
+                  <p className="mt-2.5 text-[14px] text-zinc-600 leading-[1.6]">
                     {b.description}
                   </p>
                 </div>

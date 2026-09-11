@@ -24,21 +24,21 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="w-8 h-8 rounded-lg bg-white text-zinc-950 flex items-center justify-center font-bold">
                 <Wifi className="w-4 h-4 rotate-90" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-white">
+              <span className="font-display text-xl font-extrabold tracking-tight text-white">
                 Rev<span className="text-zinc-400">Tap</span>
               </span>
             </div>
-            <p className="text-base text-zinc-300 font-medium max-w-md">
+            <p className="font-display text-base sm:text-lg text-zinc-200 font-semibold max-w-md tracking-tight">
               Turn Every Customer Into an Easy Review Opportunity.
             </p>
-            <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+            <p className="text-xs sm:text-[13px] text-zinc-400 max-w-sm leading-relaxed">
               Custom-branded NFC and QR display hardware built to make in-person review collection frictionless for U.S. businesses.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="md:col-span-3 space-y-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            <div className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400">
               Navigation
             </div>
             <ul className="space-y-2 text-sm text-zinc-400">
@@ -75,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Legal & Compliance */}
           <div className="md:col-span-3 space-y-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            <div className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400">
               Legal & Trust
             </div>
             <ul className="space-y-2 text-sm text-zinc-400">
