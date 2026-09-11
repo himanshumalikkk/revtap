@@ -17,6 +17,7 @@ import {
 import type { PackageId, BusinessInfo, ShippingInfo, OrderRecord } from '../types';
 import { CardMockup3D } from './CardMockup3D';
 import { GoogleReviewUrlGuideModal } from './GoogleReviewUrlGuideModal';
+import { tapStandHeroImg } from '../assets/images';
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -350,7 +351,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
 
                   <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0">
                     <img
-                      src="/src/assets/images/tap_stand_hero_1789160699187.jpg"
+                      src={tapStandHeroImg}
                       alt="Sign preview"
                       referrerPolicy="no-referrer"
                       className="w-8 h-8 rounded-lg object-cover border border-zinc-200"

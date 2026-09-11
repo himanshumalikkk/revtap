@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 import type { PackageId } from '../types';
+import { tapStandHeroImg, hardwareLineupImg } from '../assets/images';
 
 interface PricingSectionProps {
   onSelectPackage: (packageId: PackageId) => void;
@@ -114,7 +115,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPackage 
 
                   <div className="w-14 h-14 rounded-xl overflow-hidden border border-zinc-200/40 shrink-0 shadow-xs">
                     <img
-                      src="/src/assets/images/tap_stand_hero_1789160699187.jpg"
+                      src={plan.id === 'starter' ? tapStandHeroImg : hardwareLineupImg}
                       alt={plan.name}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"

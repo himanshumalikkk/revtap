@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Wifi, QrCode, ShieldCheck, Sparkles, Check, ArrowRight, Layers, Smartphone } from 'lucide-react';
 import type { PackageId } from '../types';
+import { hardwareLineupImg } from '../assets/images';
 
 interface HardwareShowcaseProps {
   onOpenOrder: (pkg?: PackageId) => void;
@@ -96,7 +97,7 @@ export const HardwareShowcase: React.FC<HardwareShowcaseProps> = ({ onOpenOrder 
           {/* Unobstructed, pristine photo of hardware suite */}
           <div className="mt-6 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-inner">
             <img
-              src="/src/assets/images/hardware_lineup_1789160733255.jpg"
+              src={hardwareLineupImg}
               alt="RevTap Smart Google Review Hardware Lineup - Stand, Cards, and Badges"
               referrerPolicy="no-referrer"
               className="w-full h-auto max-h-[480px] object-cover object-center"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Play, Shield, Sparkles, CheckCircle2, Wifi, QrCode, Truck, Smartphone, Star, Camera, Box } from 'lucide-react';
 import { CardMockup3D } from './CardMockup3D';
+import { tapStandHeroImg } from '../assets/images';
 
 interface HeroProps {
   onOpenOrder: () => void;
@@ -135,7 +136,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenOrder }) => {
                   {/* Clean photo without any overlapping text */}
                   <div className="overflow-hidden bg-zinc-100">
                     <img
-                      src="/src/assets/images/tap_stand_hero_1789160699187.jpg"
+                      src={tapStandHeroImg}
                       alt="RevTap Google Review NFC Countertop Stand"
                       referrerPolicy="no-referrer"
                       className="w-full aspect-[4/3] object-cover transition-transform duration-500 hover:scale-[1.02]"

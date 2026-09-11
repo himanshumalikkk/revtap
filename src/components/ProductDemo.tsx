@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Wifi, QrCode, Star, ArrowRight, Smartphone, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { phoneTapActionImg } from '../assets/images';
 
 export const ProductDemo: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'nfc' | 'qr'>('nfc');
@@ -87,7 +88,7 @@ export const ProductDemo: React.FC = () => {
                   {/* Clean image of customer tapping sign - zero text overlap */}
                   <div className="w-full h-[260px] sm:h-[320px] rounded-xl overflow-hidden border border-zinc-700/80 bg-black shadow-inner">
                     <img
-                      src="/src/assets/images/phone_tap_action_1789160715058.jpg"
+                      src={phoneTapActionImg}
                       alt="Customer tapping smartphone on RevTap sign"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-center rounded-xl"

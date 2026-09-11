@@ -12,6 +12,7 @@ import {
   Home,
   ArrowRight,
 } from 'lucide-react';
+import { counterPlacementImg } from '../assets/images';
 
 interface IndustriesSectionProps {
   onOpenOrder: () => void;
@@ -92,7 +93,7 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onOpenOrde
           <div className="lg:col-span-6 flex flex-col gap-2.5">
             <div className="rounded-2xl overflow-hidden border border-zinc-200 shadow-md bg-zinc-100">
               <img
-                src="/src/assets/images/counter_placement_1789160754197.jpg"
+                src={counterPlacementImg}
                 alt="RevTap Google Review NFC Sign on Salon Counter"
                 referrerPolicy="no-referrer"
                 className="w-full aspect-[4/3] object-cover transition-transform duration-500 hover:scale-[1.02]"
