@@ -86,7 +86,7 @@ export const ProductDemo: React.FC = () => {
               {activeStep === 1 && (
                 <div className="w-full flex flex-col gap-3.5">
                   {/* Clean image of customer tapping sign - zero text overlap */}
-                  <div className="w-full h-[260px] sm:h-[320px] rounded-xl overflow-hidden border border-zinc-700/80 bg-black shadow-inner">
+                  <div className="w-full aspect-[16/10] sm:aspect-[16/9] max-h-[320px] rounded-xl overflow-hidden border border-zinc-700/80 bg-black shadow-inner shrink-0">
                     <img
                       src={phoneTapActionImg}
                       alt="Customer tapping smartphone on RevTap sign"

@@ -79,5 +79,6 @@ export async function processPaidOrder(
     console.error(`[PayPal -> Admin Email Error]:`, err.message);
   }
 
-  return { success: true, order: updated, message: 'Order successfully marked as paid' };
+  const finalOrder = getOrderById(orderId) || updated;
+  return { success: true, order: finalOrder, message: 'Order successfully marked as paid' };
 }

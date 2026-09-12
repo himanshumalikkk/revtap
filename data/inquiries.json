@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Himanshu Malik",
+    "business": "",
+    "email": "himanshumalik311@gmail.com",
+    "message": "Hello testing contact form",
+    "id": "INQ-MTY200MC",
+    "createdAt": "2026-09-12T07:18:27.876Z",
+    "status": "new"
+  },
+  {
+    "name": "Jane Doe",
+    "business": "Austin Dental Care",
+    "email": "jane@example.com",
+    "message": "Hi, I would like to order 5 custom NFC stands for our reception desks.",
+    "id": "INQ-MTY2AAII",
+    "createdAt": "2026-09-12T07:26:27.258Z",
+    "status": "new"
+  }
+]

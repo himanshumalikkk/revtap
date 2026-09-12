@@ -132,19 +132,19 @@ export const Hero: React.FC<HeroProps> = ({ onOpenOrder }) => {
               </div>
 
               {viewMode === 'photo' ? (
-                <div className="rounded-2xl overflow-hidden shadow-lg border border-zinc-200 bg-white">
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-zinc-200 bg-white flex flex-col">
                   {/* Clean photo without any overlapping text */}
-                  <div className="overflow-hidden bg-zinc-100">
+                  <div className="overflow-hidden bg-zinc-100 shrink-0">
                     <img
                       src={tapStandHeroImg}
                       alt="RevTap Google Review NFC Countertop Stand"
                       referrerPolicy="no-referrer"
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-500 hover:scale-[1.02]"
+                      className="w-full aspect-[4/3] object-cover transition-transform duration-500 hover:scale-[1.02] block"
                     />
                   </div>
 
                   {/* Clean details card placed strictly below the image */}
-                  <div className="p-4 bg-white border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="p-4 bg-white border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
                     <div>
                       <div className="font-display text-zinc-950 font-bold text-sm flex items-center gap-1.5">
                         <Wifi className="w-3.5 h-3.5 rotate-90 text-amber-500" />

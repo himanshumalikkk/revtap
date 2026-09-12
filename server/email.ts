@@ -2,23 +2,25 @@ import type { OrderRecord, ContactInquiry } from '../src/types';
 import { updateOrder } from './db';
 
 /**
- * Sends an email using Resend REST API or logs mock output if API key is not configured.
+ * Sends an email using Resend REST API.
  */
-async function sendEmailViaResend(params: {
+export async function sendEmailViaResend(params: {
   to: string;
   subject: string;
   html: string;
   text: string;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.FROM_EMAIL || 'orders@revtap.com';
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.FROM_EMAIL?.trim();
 
-  if (!apiKey) {
-    console.info(`[Email Service (Preview Mode)]\nTo: ${params.to}\nSubject: ${params.subject}\nText:\n${params.text}\n----------------------------------`);
-    return { success: true, id: 'preview-mode-id' };
+  if (!apiKey || !fromEmail) {
+    const msg = 'Email service is not configured. Please configure RESEND_API_KEY and FROM_EMAIL.';
+    console.warn(`[Email Service Warning]: ${msg}`);
+    return { success: false, error: msg };
   }
 
   try {
+    const fromAddress = fromEmail.includes('<') ? fromEmail : `RevTap <${fromEmail}>`;
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -26,7 +28,7 @@ async function sendEmailViaResend(params: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `RevTap <${fromEmail}>`,
+        from: fromAddress,
         to: params.to,
         subject: params.subject,
         html: params.html,
@@ -36,8 +38,13 @@ async function sendEmailViaResend(params: {
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(`[Resend Error ${res.status}]:`, errorText);
-      return { success: false, error: errorText };
+      let parsedMessage = errorText;
+      try {
+        const errJson = JSON.parse(errorText);
+        parsedMessage = errJson.message || errorText;
+      } catch {}
+      console.error(`[Resend Error ${res.status}]:`, parsedMessage);
+      return { success: false, error: parsedMessage };
     }
 
     const data = (await res.json()) as { id: string };
@@ -45,14 +52,33 @@ async function sendEmailViaResend(params: {
     return { success: true, id: data.id };
   } catch (err: any) {
     console.error('[Resend Network Error]:', err.message);
-    return { success: false, error: err.message };
+    return { success: false, error: err.message || 'Network error communicating with email provider.' };
   }
 }
 
 /**
  * Send customer order confirmation email
  */
-export async function sendCustomerOrderConfirmation(order: OrderRecord): Promise<boolean> {
+export async function sendCustomerOrderConfirmation(order: OrderRecord): Promise<{ success: boolean; id?: string; error?: string }> {
+  const isTest = Boolean(order.isTestOrder);
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.FROM_EMAIL?.trim();
+
+  // If in test mode and email credentials are not configured, simulate gracefully
+  if (isTest && (!apiKey || !fromEmail)) {
+    console.log(`[Test Order ${order.id}] Email credentials not configured. Simulating customer confirmation dispatch.`);
+    updateOrder(order.id, {
+      customerEmailStatus: 'sent',
+      customerEmailError: undefined,
+      emailsSent: {
+        ...(order.emailsSent || { adminNotification: false }),
+        customerConfirmation: true,
+        sentAt: new Date().toISOString(),
+      },
+    });
+    return { success: true, id: `test-cust-email-${order.id}` };
+  }
+
   const fullAddress = [
     order.shipping.addressLine1,
     order.shipping.addressLine2,
@@ -62,7 +88,7 @@ export async function sendCustomerOrderConfirmation(order: OrderRecord): Promise
     .filter(Boolean)
     .join(', ');
 
-  const subject = `Thank You for Your RevTap Order — #${order.id}`;
+  const subject = `${isTest ? '[TEST ORDER] ' : ''}Thank You for Your RevTap Order — #${order.id}`;
 
   const textBody = `Hi ${order.shipping.fullName},
 
@@ -133,15 +159,44 @@ https://revtap.com`;
     html: htmlBody,
   });
 
-  return result.success;
+  updateOrder(order.id, {
+    customerEmailStatus: result.success ? 'sent' : 'failed',
+    customerEmailError: result.success ? undefined : result.error,
+    emailsSent: {
+      ...(order.emailsSent || { adminNotification: false }),
+      customerConfirmation: result.success,
+      sentAt: result.success ? new Date().toISOString() : order.emailsSent?.sentAt,
+    },
+  });
+
+  return result;
 }
 
 /**
  * Send admin new order notification email with supplier reorder section
  */
-export async function sendAdminOrderNotification(order: OrderRecord): Promise<boolean> {
+export async function sendAdminOrderNotification(order: OrderRecord): Promise<{ success: boolean; id?: string; error?: string }> {
+  const isTest = Boolean(order.isTestOrder);
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.FROM_EMAIL?.trim();
+
+  // If in test mode and email credentials are not configured, simulate gracefully
+  if (isTest && (!apiKey || !fromEmail)) {
+    console.log(`[Test Order ${order.id}] Email credentials not configured. Simulating admin notification dispatch.`);
+    updateOrder(order.id, {
+      adminEmailStatus: 'sent',
+      adminEmailError: undefined,
+      emailsSent: {
+        ...(order.emailsSent || { customerConfirmation: false }),
+        adminNotification: true,
+        sentAt: new Date().toISOString(),
+      },
+    });
+    return { success: true, id: `test-admin-email-${order.id}` };
+  }
+
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@revtap.com';
-  const subject = `NEW REV TAP ORDER — ${order.id}`;
+  const subject = `${isTest ? '[TEST ORDER] ' : ''}NEW REV TAP ORDER — ${order.id}`;
 
   const fullShippingAddress = [
     order.shipping.addressLine1,
@@ -233,19 +288,29 @@ Please copy the details above or check Google Sheet ID: ${process.env.GOOGLE_SHE
     html: htmlBody,
   });
 
-  return result.success;
+  updateOrder(order.id, {
+    adminEmailStatus: result.success ? 'sent' : 'failed',
+    adminEmailError: result.success ? undefined : result.error,
+    emailsSent: {
+      ...(order.emailsSent || { customerConfirmation: false }),
+      adminNotification: result.success,
+      sentAt: result.success ? new Date().toISOString() : order.emailsSent?.sentAt,
+    },
+  });
+
+  return result;
 }
 
 /**
  * Send admin contact notification
  */
-export async function sendAdminContactNotification(inquiry: ContactInquiry): Promise<boolean> {
+export async function sendAdminContactNotification(inquiry: ContactInquiry): Promise<{ success: boolean; error?: string }> {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@revtap.com';
-  const subject = `New RevTap Inquiry from ${inquiry.name} (${inquiry.business || 'Business'})`;
+  const subject = `New RevTap Inquiry from ${inquiry.name} (${inquiry.business || 'Customer'})`;
 
   const textBody = `New inquiry received on RevTap:
 Name: ${inquiry.name}
-Business: ${inquiry.business}
+Business: ${inquiry.business || 'N/A'}
 Email: ${inquiry.email}
 Time: ${new Date(inquiry.createdAt).toUTCString()}
 
@@ -257,8 +322,8 @@ ${inquiry.message}
     to: adminEmail,
     subject,
     text: textBody,
-    html: `<p><strong>Name:</strong> ${inquiry.name}</p><p><strong>Business:</strong> ${inquiry.business}</p><p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p><p><strong>Message:</strong></p><p>${inquiry.message.replace(/\n/g, '<br>')}</p>`,
+    html: `<p><strong>Name:</strong> ${inquiry.name}</p><p><strong>Business:</strong> ${inquiry.business || 'N/A'}</p><p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p><p><strong>Message:</strong></p><p>${inquiry.message.replace(/\n/g, '<br>')}</p>`,
   });
 
-  return result.success;
+  return result;
 }

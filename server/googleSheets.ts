@@ -40,6 +40,7 @@ export const GOOGLE_SHEET_COLUMNS = [
  * Transforms an OrderRecord into a row array matching GOOGLE_SHEET_COLUMNS
  */
 export function orderToRow(order: OrderRecord): (string | number)[] {
+  const isTest = Boolean(order.isTestOrder);
   const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -59,7 +60,7 @@ export function orderToRow(order: OrderRecord): (string | number)[] {
     : 'None';
 
   return [
-    order.id,
+    isTest ? `[TEST] ${order.id}` : order.id,
     formattedDate,
     order.status.toUpperCase(),
     order.packageName,
@@ -83,13 +84,34 @@ export function orderToRow(order: OrderRecord): (string | number)[] {
     order.supplierInfo?.supplierName || 'RevTap Direct NFC Partner',
     order.supplierInfo?.supplierStatus || 'Pending',
     order.supplierInfo?.supplierTracking || 'N/A',
-    order.supplierInfo?.notes || '',
+    (isTest ? '[TEST SIMULATION] ' : '') + (order.supplierInfo?.notes || ''),
     order.supplierInfo?.supplierOrdered ? 'YES' : 'NO',
     order.supplierInfo?.supplierOrderDate || '',
     order.supplierInfo?.supplierCost || '',
     order.supplierInfo?.supplierTracking || '',
     order.supplierInfo?.delivered ? 'YES' : 'NO',
   ];
+}
+
+/**
+ * Cleans and formats a Google Service Account PEM private key.
+ * Strips surrounding quotes, trailing commas (common in JSON copy-paste), and unescapes newlines.
+ */
+export function cleanGooglePrivateKey(raw?: string): string {
+  if (!raw) return '';
+  let cleaned = raw.trim();
+  if (cleaned.endsWith(',')) {
+    cleaned = cleaned.slice(0, -1).trim();
+  }
+  while (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  cleaned = cleaned.replace(/\\n/g, '\n');
+  cleaned = cleaned.replace(/^["']+|["']+$/g, '').trim();
+  return cleaned;
 }
 
 /**
@@ -120,8 +142,8 @@ async function getGoogleAccessToken(
   const encodedClaimSet = encodeBase64Url(claimSet);
   const signatureInput = `${encodedHeader}.${encodedClaimSet}`;
 
-  // Clean private key formatting (handles escaped newlines in env vars)
-  const formattedKey = privateKey.replace(/\\n/g, '\n');
+  // Clean private key formatting (handles quotes, trailing commas, and escaped newlines)
+  const formattedKey = cleanGooglePrivateKey(privateKey);
 
   const signer = crypto.createSign('RSA-SHA256');
   signer.update(signatureInput);
@@ -160,6 +182,16 @@ export async function syncOrderToGoogleSheet(order: OrderRecord): Promise<{ succ
   const privateKey = process.env.GOOGLE_PRIVATE_KEY;
 
   if (!sheetId || !clientEmail || !privateKey) {
+    if (order.isTestOrder) {
+      console.log(`[Test Order ${order.id}] Sheets credentials not configured. Simulating Google Sheet sync successfully.`);
+      updateOrder(order.id, {
+        sheetSyncStatus: 'synced',
+        sheetSyncedAt: new Date().toISOString(),
+        sheetSyncError: undefined,
+      });
+      return { success: true, message: 'Test mode: Sheet sync simulated successfully' };
+    }
+
     const reason = 'Google Sheets credentials not fully configured in environment (GOOGLE_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY). Order stored locally for manual reorder.';
     console.info(`[GoogleSheets] ${reason}`);
     updateOrder(order.id, {
@@ -187,7 +219,12 @@ export async function syncOrderToGoogleSheet(order: OrderRecord): Promise<{ succ
 
     if (!res.ok) {
       const errorBody = await res.text();
-      throw new Error(`Sheets API responded with ${res.status}: ${errorBody}`);
+      let friendlyError = errorBody;
+      try {
+        const parsed = JSON.parse(errorBody);
+        friendlyError = parsed.error?.message || errorBody;
+      } catch {}
+      throw new Error(`Sheets API (${res.status}): ${friendlyError}`);
     }
 
     console.log(`[GoogleSheets] Successfully synced order ${order.id} to sheet ${sheetId}`);

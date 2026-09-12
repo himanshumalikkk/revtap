@@ -60,13 +60,14 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
           transform: isHovered
             ? `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`
             : 'rotateX(8deg) rotateY(-10deg) translateY(0px)',
-          width: compact ? '260px' : '320px',
+          width: compact ? '270px' : '320px',
+          maxWidth: '100%',
         }}
       >
         {/* Realistic Card Surface */}
         <div
-          className={`relative rounded-2xl bg-gradient-to-br from-zinc-900 via-black to-zinc-950 p-6 text-white shadow-2xl border border-zinc-700/60 overflow-hidden ${
-            compact ? 'h-[360px]' : 'h-[440px]'
+          className={`relative rounded-2xl bg-gradient-to-br from-zinc-900 via-black to-zinc-950 text-white shadow-2xl border border-zinc-700/60 overflow-hidden flex flex-col justify-between ${
+            compact ? 'p-4 min-h-[420px]' : 'p-6 min-h-[470px]'
           }`}
           style={{
             boxShadow: isHovered
@@ -83,7 +84,7 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
           />
 
           {/* Top Brand & NFC Indicator */}
-          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-zinc-800/80">
+          <div className="relative z-10 flex items-center justify-between pb-3 border-b border-zinc-800/80 shrink-0">
             <div className="flex items-center gap-2">
               <span className="font-extrabold tracking-tight text-white text-base">
                 REV<span className="text-zinc-400">TAP</span>
@@ -101,9 +102,11 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
           </div>
 
           {/* Center Business Identity & Tap Callout */}
-          <div className={`relative z-10 flex flex-col items-center justify-center text-center ${compact ? 'mt-2' : 'mt-4'}`}>
+          <div className="relative z-10 flex flex-col items-center justify-center text-center my-auto py-2">
             {/* Custom Logo or Default Icon */}
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/80 flex items-center justify-center p-2 mb-2 shadow-inner overflow-hidden">
+            <div className={`rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/80 flex items-center justify-center p-1.5 mb-2 shadow-inner overflow-hidden shrink-0 ${
+              compact ? 'w-11 h-11' : 'w-14 h-14'
+            }`}>
               {logoUrl ? (
                 <img
                   src={logoUrl}
@@ -112,19 +115,19 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-lg bg-zinc-700/70 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 rounded-lg bg-zinc-700/70 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                   {businessName.slice(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
 
-            <h4 className="font-bold text-base sm:text-lg text-white tracking-tight line-clamp-1 max-w-[240px]">
+            <h4 className="font-bold text-sm sm:text-base text-white tracking-tight truncate max-w-[230px] px-1">
               {businessName}
             </h4>
 
             {/* Google Rating indication (compliant neutral presentation) */}
-            <div className="flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-full bg-zinc-800/60 border border-zinc-700/50 text-[11px] text-zinc-300">
-              <span className="font-medium text-white">Review us on</span>
+            <div className="flex items-center gap-1.5 mt-2 px-2.5 py-0.5 rounded-full bg-zinc-800/70 border border-zinc-700/50 text-[11px] text-zinc-300 shrink-0">
+              <span className="font-medium text-white text-[10px] sm:text-[11px]">Review us on</span>
               <span className="font-semibold text-[#4285F4]">G</span>
               <span className="font-semibold text-[#EA4335]">o</span>
               <span className="font-semibold text-[#FBBC05]">o</span>
@@ -132,25 +135,26 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
               <span className="font-semibold text-[#34A853]">l</span>
               <span className="font-semibold text-[#EA4335]">e</span>
             </div>
-          </div>
 
-          {/* NFC Tap Target Graphic */}
-          <div className={`relative z-10 flex flex-col items-center ${compact ? 'my-2.5' : 'my-4'}`}>
-            <div className="relative flex items-center justify-center">
-              {/* Outer pulsing ring */}
-              <div className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-zinc-700/40 animate-ping opacity-25" />
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-900 border-2 border-zinc-600/70 flex flex-col items-center justify-center shadow-lg">
-                <Wifi className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-200 rotate-90" />
+            {/* NFC Tap Target Graphic */}
+            <div className="flex flex-col items-center mt-3 shrink-0">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-14 h-14 rounded-full border border-zinc-700/40 animate-ping opacity-25" />
+                <div className={`rounded-full bg-gradient-to-b from-zinc-800 to-zinc-900 border-2 border-zinc-600/70 flex flex-col items-center justify-center shadow-lg ${
+                  compact ? 'w-12 h-12' : 'w-14 h-14'
+                }`}>
+                  <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-200 rotate-90" />
+                </div>
               </div>
+              <span className="mt-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-200">
+                Tap to Review
+              </span>
             </div>
-            <span className="mt-2 text-xs font-semibold uppercase tracking-widest text-zinc-200">
-              Tap to Review
-            </span>
           </div>
 
           {/* Bottom QR Fallback section */}
-          <div className="relative z-10 mt-auto pt-3 border-t border-zinc-800/80 flex items-center justify-between">
-            <div className="text-left">
+          <div className="relative z-10 mt-auto pt-2.5 border-t border-zinc-800/80 flex items-center justify-between shrink-0">
+            <div className="text-left pr-2">
               <div className="text-[10px] text-zinc-400 font-medium leading-tight">
                 No NFC on phone?
               </div>
@@ -160,7 +164,7 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
             </div>
 
             {/* QR Mockup */}
-            <div className="w-10 h-10 bg-white p-1 rounded-md flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 bg-white p-1 rounded-md flex items-center justify-center shadow-sm shrink-0">
               <QrCode className="w-full h-full text-black" />
             </div>
           </div>
@@ -168,9 +172,9 @@ export const CardMockup3D: React.FC<CardMockup3DProps> = ({
 
         {/* Realistic Acrylic Stand Base */}
         <div
-          className="mx-auto mt-[-10px] rounded-b-xl bg-gradient-to-b from-zinc-800/90 to-zinc-900/95 border-t border-zinc-600/40 border-b border-zinc-950 p-2 shadow-xl"
+          className="mx-auto mt-[-8px] rounded-b-xl bg-gradient-to-b from-zinc-800/90 to-zinc-900/95 border-t border-zinc-600/40 border-b border-zinc-950 p-2 shadow-xl"
           style={{
-            width: compact ? '200px' : '240px',
+            width: compact ? '210px' : '250px',
             boxShadow: '0 25px 35px -5px rgba(0,0,0,0.5)',
           }}
         >

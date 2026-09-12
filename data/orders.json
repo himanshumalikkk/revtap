@@ -1,0 +1,82 @@
+[
+  {
+    "status": "payment_pending",
+    "packageId": "growth",
+    "packageName": "Growth Pack",
+    "quantity": 5,
+    "price": 199.99,
+    "total": 199.99,
+    "currency": "USD",
+    "business": {
+      "businessName": "Acme Dental",
+      "businessWebsite": "",
+      "businessEmail": "acme@example.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://g.page/r/test/review",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "John Doe",
+      "shippingBusinessName": "Acme Dental",
+      "addressLine1": "123 Main St",
+      "addressLine2": "",
+      "city": "Austin",
+      "state": "TX",
+      "zipCode": "78701",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0001",
+    "createdAt": "2026-09-12T07:18:34.863Z",
+    "updatedAt": "2026-09-12T07:18:34.863Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    }
+  },
+  {
+    "status": "paid",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "business": {
+      "businessName": "Austin Artisan Bakery",
+      "businessWebsite": "",
+      "businessEmail": "orders@austinbakery.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://g.page/r/sample-bakery/review",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Sarah Miller",
+      "shippingBusinessName": "Austin Artisan Bakery",
+      "addressLine1": "400 Congress Ave",
+      "addressLine2": "",
+      "city": "Austin",
+      "state": "TX",
+      "zipCode": "78701",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0002",
+    "createdAt": "2026-09-12T07:26:23.171Z",
+    "updatedAt": "2026-09-12T07:26:24.864Z",
+    "sheetSyncStatus": "failed",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalTxnId": "TEST-TXN-MTY2A8NX",
+    "paymentMethod": "PayPal Sandbox / Test Simulation",
+    "paidAt": "2026-09-12T07:26:24.861Z",
+    "sheetSyncError": "error:1E08010C:DECODER routines::unsupported"
+  }
+]

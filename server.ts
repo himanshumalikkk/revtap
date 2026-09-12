@@ -56,13 +56,31 @@ function checkRateLimit(ip: string, limit: number = 60, windowMs: number = 60000
   return true;
 }
 
+// In-memory deduplication cache for contact form submissions (prevents spam/duplicates)
+const recentInquiryMap = new Map<string, number>();
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // JSON Body Parser with 10MB limit for business logos
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // JSON Body Parser with 25MB limit for high-resolution business logos
+  app.use(express.json({ limit: '25mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+  // Error middleware for payload / JSON parsing errors (prevents returning raw HTML to clients)
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err) {
+      if (err.type === 'entity.too.large') {
+        return res.status(413).json({
+          error: 'The uploaded logo or payload exceeds the 25MB size limit. Please upload a smaller image file.',
+        });
+      }
+      if (err instanceof SyntaxError && 'body' in err) {
+        return res.status(400).json({ error: 'Malformed JSON payload provided.' });
+      }
+    }
+    next(err);
+  });
 
   // Middleware: Security headers & rate limiting
   app.use((req, res, next) => {
@@ -103,7 +121,8 @@ async function startServer() {
           process.env.GOOGLE_PRIVATE_KEY
       ),
       googleSheetId: process.env.GOOGLE_SHEET_ID || '',
-      resendConfigured: Boolean(process.env.RESEND_API_KEY),
+      resendConfigured: Boolean(process.env.RESEND_API_KEY && process.env.FROM_EMAIL),
+      fromEmailConfigured: Boolean(process.env.FROM_EMAIL),
       adminEmail: process.env.ADMIN_EMAIL || 'admin@revtap.com',
       supportEmail: process.env.SUPPORT_EMAIL || 'support@revtap.com',
     });
@@ -112,10 +131,11 @@ async function startServer() {
   // Create an Order (Sets status = payment_pending)
   app.post('/api/orders', (req, res) => {
     try {
-      const { packageId, business, shipping } = req.body as {
+      const { packageId, business, shipping, isTestOrder } = req.body as {
         packageId: PackageId;
         business: BusinessInfo;
         shipping: ShippingInfo;
+        isTestOrder?: boolean;
       };
 
       // Server-side validation
@@ -123,32 +143,49 @@ async function startServer() {
         return res.status(400).json({ error: 'Invalid package selected.' });
       }
 
-      if (!business || !business.businessName?.trim()) {
+      if (!business || typeof business !== 'object') {
+        return res.status(400).json({ error: 'Business details are required.' });
+      }
+
+      const businessName = (business.businessName || '').trim();
+      if (!businessName) {
         return res.status(400).json({ error: 'Business Name is required.' });
       }
 
-      if (!business.businessEmail || !business.businessEmail.includes('@')) {
+      const businessEmail = (business.businessEmail || '').trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!businessEmail || !emailRegex.test(businessEmail)) {
         return res.status(400).json({ error: 'A valid business email address is required.' });
       }
 
-      if (!business.googleReviewUrl?.trim()) {
-        return res.status(400).json({ error: 'Google Review URL is required.' });
+      let reviewUrl = (business.googleReviewUrl || '').trim();
+      if (!reviewUrl) {
+        return res.status(400).json({ error: 'Google Review URL or link is required.' });
       }
 
-      // Basic URL format validation
-      if (!business.googleReviewUrl.startsWith('http://') && !business.googleReviewUrl.startsWith('https://')) {
-        return res.status(400).json({ error: 'Google Review URL must start with https:// or http://' });
+      // Auto-prefix https:// if customer pasted e.g. g.page/r/... or maps.app.goo.gl/...
+      if (!/^https?:\/\//i.test(reviewUrl)) {
+        reviewUrl = `https://${reviewUrl}`;
       }
 
-      if (!shipping || !shipping.fullName?.trim()) {
+      if (!shipping || typeof shipping !== 'object') {
+        return res.status(400).json({ error: 'Shipping details are required.' });
+      }
+
+      const fullName = (shipping.fullName || '').trim();
+      if (!fullName) {
         return res.status(400).json({ error: 'Full Shipping Name is required.' });
       }
 
-      if (!shipping.addressLine1?.trim()) {
+      const addressLine1 = (shipping.addressLine1 || '').trim();
+      if (!addressLine1) {
         return res.status(400).json({ error: 'Shipping Street Address is required.' });
       }
 
-      if (!shipping.city?.trim() || !shipping.state?.trim() || !shipping.zipCode?.trim()) {
+      const city = (shipping.city || '').trim();
+      const state = (shipping.state || '').trim().toUpperCase();
+      const zipCode = (shipping.zipCode || '').trim();
+      if (!city || !state || !zipCode) {
         return res.status(400).json({ error: 'Shipping City, State, and ZIP Code are required.' });
       }
 
@@ -161,25 +198,26 @@ async function startServer() {
         price: pkg.price,
         total: pkg.price,
         currency: 'USD',
+        isTestOrder: Boolean(isTestOrder),
         business: {
-          businessName: business.businessName.trim(),
+          businessName,
           businessWebsite: (business.businessWebsite || '').trim(),
-          businessEmail: business.businessEmail.trim().toLowerCase(),
+          businessEmail,
           businessPhone: (business.businessPhone || '').trim(),
-          googleReviewUrl: business.googleReviewUrl.trim(),
+          googleReviewUrl: reviewUrl,
           logoDataUrl: business.logoDataUrl,
           logoFileName: business.logoFileName,
           brandingNotes: (business.brandingNotes || '').trim(),
         },
         shipping: {
-          fullName: shipping.fullName.trim(),
-          shippingBusinessName: (shipping.shippingBusinessName || business.businessName).trim(),
-          addressLine1: shipping.addressLine1.trim(),
+          fullName,
+          shippingBusinessName: (shipping.shippingBusinessName || businessName).trim(),
+          addressLine1,
           addressLine2: (shipping.addressLine2 || '').trim(),
-          city: shipping.city.trim(),
-          state: shipping.state.trim().toUpperCase(),
-          zipCode: shipping.zipCode.trim(),
-          country: shipping.country?.trim() || 'United States',
+          city,
+          state,
+          zipCode,
+          country: (shipping.country || 'United States').trim(),
         },
       });
 
@@ -195,7 +233,9 @@ async function startServer() {
       });
     } catch (err: any) {
       console.error('[Create Order Error]:', err);
-      return res.status(500).json({ error: 'Internal server error while creating order.' });
+      return res.status(500).json({
+        error: 'Unable to initialize order. Please verify your details and try again.',
+      });
     }
   });
 
@@ -228,7 +268,19 @@ async function startServer() {
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }
-    return res.json({ success: true, order: result.order });
+    return res.json({
+      success: true,
+      order: result.order,
+      message: result.message,
+      syncSummary: {
+        sheetSyncStatus: result.order?.sheetSyncStatus,
+        sheetSyncError: result.order?.sheetSyncError,
+        customerEmailStatus: result.order?.customerEmailStatus,
+        customerEmailError: result.order?.customerEmailError,
+        adminEmailStatus: result.order?.adminEmailStatus,
+        adminEmailError: result.order?.adminEmailError,
+      },
+    });
   });
 
   // PayPal Webhook Endpoint
@@ -266,30 +318,88 @@ async function startServer() {
     }
   });
 
-  // Contact Form Submission
+  // Contact Form Submission with validation, email config check, deduplication, and notification delivery
   app.post('/api/contact', async (req, res) => {
     try {
-      const { name, business, email, message } = req.body;
-      if (!name || !email || !message) {
-        return res.status(400).json({ error: 'Name, email, and message are required.' });
+      const { name, business, businessName, email, message } = req.body;
+
+      // 1. Server-side validation
+      const cleanName = (name || '').trim();
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const cleanMessage = (message || '').trim();
+      const cleanBusiness = (business || businessName || '').trim();
+
+      if (!cleanName) {
+        return res.status(400).json({ error: 'Please enter your full name.' });
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ error: 'Please enter a valid email address.' });
+      }
+
+      if (!cleanMessage || cleanMessage.length < 5) {
+        return res.status(400).json({ error: 'Please provide a message of at least 5 characters.' });
+      }
+
+      // 2. Email Service Configuration Check
+      const apiKey = process.env.RESEND_API_KEY?.trim();
+      const fromEmail = process.env.FROM_EMAIL?.trim();
+
+      if (!apiKey || !fromEmail) {
+        console.error('[Contact Error]: Missing email service configuration');
+        return res.status(500).json({
+          error: 'Email service is not configured. Please configure RESEND_API_KEY and FROM_EMAIL.',
+        });
+      }
+
+      // 3. Prevent duplicate submissions (within 60 seconds from same email & message)
+      const dedupeKey = `${cleanEmail}:${cleanMessage}`;
+      const now = Date.now();
+      const lastSent = recentInquiryMap.get(dedupeKey);
+      if (lastSent && now - lastSent < 60000) {
+        return res.status(429).json({
+          error: 'A duplicate message was recently received. Please wait a moment before submitting again.',
+        });
+      }
+      recentInquiryMap.set(dedupeKey, now);
+
+      // Clean up old entries from deduplication map every 100 entries
+      if (recentInquiryMap.size > 200) {
+        for (const [key, timestamp] of recentInquiryMap.entries()) {
+          if (now - timestamp > 120000) {
+            recentInquiryMap.delete(key);
+          }
+        }
+      }
+
+      // 4. Persist contact inquiry safely
       const inquiry = saveContactInquiry({
-        name: name.trim(),
-        business: (business || '').trim(),
-        email: email.trim().toLowerCase(),
-        message: message.trim(),
+        name: cleanName,
+        business: cleanBusiness,
+        email: cleanEmail,
+        message: cleanMessage,
       });
 
-      // Dispatch notification
-      sendAdminContactNotification(inquiry).catch((err) =>
-        console.error('[Contact Notification Error]:', err)
-      );
+      // 5. Send notification to ADMIN_EMAIL and wait for result
+      const emailResult = await sendAdminContactNotification(inquiry);
+      if (!emailResult.success) {
+        console.error('[Contact Email Delivery Failed]:', emailResult.error);
+        return res.status(502).json({
+          error: `Email delivery failed: ${emailResult.error || 'Unable to route message to administrator.'}`,
+        });
+      }
 
-      return res.json({ success: true, inquiry });
+      return res.status(200).json({
+        success: true,
+        message: 'Your inquiry has been received. Our team will get back to you shortly!',
+        inquiryId: inquiry.id,
+      });
     } catch (err: any) {
       console.error('[Contact Error]:', err);
-      return res.status(500).json({ error: 'Failed to submit contact message.' });
+      return res.status(500).json({
+        error: 'An unexpected server error occurred while sending your message. Please try again.',
+      });
     }
   });
 

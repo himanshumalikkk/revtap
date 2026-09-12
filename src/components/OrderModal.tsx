@@ -100,6 +100,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isTestOrder, setIsTestOrder] = useState(false);
 
   // Payment transition state
   const [createdOrder, setCreatedOrder] = useState<OrderRecord | null>(null);
@@ -161,14 +162,15 @@ export const OrderModal: React.FC<OrderModalProps> = ({
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessInfo.businessEmail)) {
       newErrors.businessEmail = 'Please enter a valid email address.';
     }
-    if (!businessInfo.googleReviewUrl.trim()) {
+
+    let reviewUrl = businessInfo.googleReviewUrl.trim();
+    if (!reviewUrl) {
       newErrors.googleReviewUrl = 'Google Review link is required.';
-    } else if (
-      !businessInfo.googleReviewUrl.startsWith('http://') &&
-      !businessInfo.googleReviewUrl.startsWith('https://')
-    ) {
-      newErrors.googleReviewUrl = 'Link must start with https:// or http://';
+    } else if (!/^https?:\/\//i.test(reviewUrl)) {
+      reviewUrl = `https://${reviewUrl}`;
+      setBusinessInfo((prev) => ({ ...prev, googleReviewUrl: reviewUrl }));
     }
+
     if (!businessInfo.logoDataUrl && !logoPreview) {
       newErrors.logo = 'Please upload your business logo for custom sign printing.';
     }
@@ -234,6 +236,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         packageId: selectedPackage,
         business: businessInfo,
         shipping: shippingInfo,
+        isTestOrder,
       };
 
       const response = await fetch('/api/orders', {
@@ -244,7 +247,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to initialize order.');
+        throw new Error(errorData.error || 'Failed to initialize order. Please review your details and try again.');
       }
 
       const data = await response.json();
@@ -256,7 +259,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
       setShowPaymentModal(true);
     } catch (err: any) {
       setSubmitError(err.message || 'An error occurred. Please try again.');
-      onOrderFailure(undefined, err.message);
+      // Keep user in the modal so they can fix any inputs rather than prematurely showing error page
     } finally {
       setIsSubmitting(false);
     }
@@ -887,6 +890,25 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                     </p>
                   </div>
                 </div>
+
+                {/* Test Mode Toggle Option */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-100/90 border border-zinc-200/90 text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="order-test-mode"
+                      checked={isTestOrder}
+                      onChange={(e) => setIsTestOrder(e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <label htmlFor="order-test-mode" className="font-bold text-zinc-800 cursor-pointer select-none">
+                      Enable Test Order Mode
+                    </label>
+                  </div>
+                  <span className="text-[11px] text-zinc-500 font-medium">
+                    {isTestOrder ? 'Tagged as test simulation' : 'Standard live order'}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -1008,11 +1030,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                 type="button"
                 onClick={() => {
                   setShowPaymentModal(false);
-                  onOrderFailure(createdOrder, 'Payment was cancelled or closed.');
                 }}
                 className="text-xs text-zinc-500 hover:text-zinc-800 underline block mx-auto pt-2 cursor-pointer"
               >
-                Cancel / Return to RevTap
+                Back to Order Details
               </button>
             </div>
           </div>

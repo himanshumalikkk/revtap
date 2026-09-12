@@ -58,11 +58,16 @@ export interface OrderRecord {
   sheetSyncStatus: SheetSyncStatus;
   sheetSyncedAt?: string;
   sheetSyncError?: string;
+  customerEmailStatus?: 'pending' | 'sent' | 'failed';
+  customerEmailError?: string;
+  adminEmailStatus?: 'pending' | 'sent' | 'failed';
+  adminEmailError?: string;
   emailsSent?: {
     customerConfirmation: boolean;
     adminNotification: boolean;
     sentAt?: string;
   };
+  isTestOrder?: boolean;
   supplierInfo?: {
     supplierName: string;
     supplierOrdered: boolean;
