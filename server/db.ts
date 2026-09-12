@@ -2,38 +2,60 @@ import fs from 'fs';
 import path from 'path';
 import type { OrderRecord, ContactInquiry, PackageId, OrderStatus, SheetSyncStatus } from '../src/types';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
-const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const BASE_DATA_DIR = path.join(process.cwd(), 'data');
+const WRITABLE_DATA_DIR = isVercel ? path.join('/tmp', 'revtap-data') : BASE_DATA_DIR;
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(WRITABLE_DATA_DIR)) {
+    fs.mkdirSync(WRITABLE_DATA_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[DB Init Warning]: Could not create writable data directory:', err);
 }
 
-function loadJson<T>(filePath: string, fallback: T): T {
+const ORDERS_FILE = path.join(WRITABLE_DATA_DIR, 'orders.json');
+const INQUIRIES_FILE = path.join(WRITABLE_DATA_DIR, 'inquiries.json');
+const SEED_ORDERS_FILE = path.join(BASE_DATA_DIR, 'orders.json');
+const SEED_INQUIRIES_FILE = path.join(BASE_DATA_DIR, 'inquiries.json');
+
+function loadJson<T>(primaryPath: string, fallbackPath: string, fallback: T): T {
   try {
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, 'utf-8');
+    if (fs.existsSync(primaryPath)) {
+      const data = fs.readFileSync(primaryPath, 'utf-8');
       return JSON.parse(data) as T;
     }
   } catch (err) {
-    console.error(`Error reading ${filePath}:`, err);
+    console.warn(`Error reading primary ${primaryPath}:`, err);
   }
+
+  try {
+    if (fallbackPath && primaryPath !== fallbackPath && fs.existsSync(fallbackPath)) {
+      const data = fs.readFileSync(fallbackPath, 'utf-8');
+      return JSON.parse(data) as T;
+    }
+  } catch (err) {
+    console.warn(`Error reading fallback ${fallbackPath}:`, err);
+  }
+
   return fallback;
 }
 
 function saveJson<T>(filePath: string, data: T): void {
   try {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
-    console.error(`Error writing ${filePath}:`, err);
+    console.warn(`[DB Storage Warning] Error writing ${filePath}:`, err);
   }
 }
 
 // In-memory caches synced with JSON files
-let orders: OrderRecord[] = loadJson<OrderRecord[]>(ORDERS_FILE, []);
-let inquiries: ContactInquiry[] = loadJson<ContactInquiry[]>(INQUIRIES_FILE, []);
+let orders: OrderRecord[] = loadJson<OrderRecord[]>(ORDERS_FILE, SEED_ORDERS_FILE, []);
+let inquiries: ContactInquiry[] = loadJson<ContactInquiry[]>(INQUIRIES_FILE, SEED_INQUIRIES_FILE, []);
 
 /**
  * Generate unique Order ID in the exact format: RVT-YYYYMMDD-XXXX

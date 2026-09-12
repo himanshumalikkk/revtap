@@ -245,12 +245,19 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to initialize order. Please review your details and try again.');
+      let errorData: any = null;
+      try {
+        errorData = await response.json();
+      } catch {
+        const text = await response.text().catch(() => '');
+        errorData = { error: text || `Server error (${response.status})` };
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(errorData?.error || `Order creation failed (HTTP ${response.status}). Please review your details and try again.`);
+      }
+
+      const data = errorData;
       const order = data.order as OrderRecord;
       const targetLink = data.paymentLink as string;
 

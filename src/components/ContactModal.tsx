@@ -34,10 +34,16 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         body: JSON.stringify({ name, email, businessName, message }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        data = { error: text || `Server error (${res.status})` };
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to send message. Please try again.');
+        throw new Error(data?.error || `Unable to send message (HTTP ${res.status}). Please try again.`);
       }
 
       setSubmitted(true);

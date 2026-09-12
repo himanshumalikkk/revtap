@@ -78,5 +78,227 @@
     "paymentMethod": "PayPal Sandbox / Test Simulation",
     "paidAt": "2026-09-12T07:26:24.861Z",
     "sheetSyncError": "error:1E08010C:DECODER routines::unsupported"
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Malik",
+      "businessWebsite": "",
+      "businessEmail": "sakshichoudhary1803@gmail.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://maps.app.goo.gl/RCQErJrmuW7abc",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Sakshi Choudhary",
+      "shippingBusinessName": "Malik",
+      "addressLine1": "Gaziabad",
+      "addressLine2": "",
+      "city": "Gaziabad",
+      "state": "CA",
+      "zipCode": "96162",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0003",
+    "createdAt": "2026-09-12T11:59:30.994Z",
+    "updatedAt": "2026-09-12T11:59:30.994Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    }
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Malik",
+      "businessWebsite": "",
+      "businessEmail": "sakshichoudhary1803@gmail.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://maps.app.goo.gl/RCQErJrmuW7abc",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Sakshi Choudhary",
+      "shippingBusinessName": "Malik",
+      "addressLine1": "Gaziabad",
+      "addressLine2": "",
+      "city": "Gaziabad",
+      "state": "CA",
+      "zipCode": "96162",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0004",
+    "createdAt": "2026-09-12T12:00:12.604Z",
+    "updatedAt": "2026-09-12T12:00:12.604Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    }
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Malik",
+      "businessWebsite": "",
+      "businessEmail": "sakshichoudhary1803@gmail.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://maps.app.goo.gl/RCQErJrmuW7abc",
+      "logoDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "logoFileName": "logo.png",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Sakshi Choudhary",
+      "shippingBusinessName": "Malik",
+      "addressLine1": "Gaziabad",
+      "addressLine2": "",
+      "city": "Gaziabad",
+      "state": "CA",
+      "zipCode": "96162",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0005",
+    "createdAt": "2026-09-12T12:01:27.966Z",
+    "updatedAt": "2026-09-12T12:01:27.966Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    }
+  },
+  {
+    "status": "paid",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Malik Enterprises",
+      "businessWebsite": "",
+      "businessEmail": "sakshichoudhary1803@gmail.com",
+      "businessPhone": "",
+      "googleReviewUrl": "https://maps.app.goo.gl/RCQErJrmuW7abc",
+      "logoDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "logoFileName": "logo.png",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Sakshi Choudhary",
+      "shippingBusinessName": "Malik Enterprises",
+      "addressLine1": "123 Main Street",
+      "addressLine2": "",
+      "city": "Austin",
+      "state": "CA",
+      "zipCode": "96162",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0006",
+    "createdAt": "2026-09-12T12:04:11.191Z",
+    "updatedAt": "2026-09-12T12:04:15.263Z",
+    "sheetSyncStatus": "failed",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalTxnId": "TEST-TXN-MTYC7IQV",
+    "paymentMethod": "PayPal Sandbox / Test Simulation",
+    "paidAt": "2026-09-12T12:04:14.119Z",
+    "sheetSyncError": "Sheets API (403): Google Sheets API has not been used in project 543719384851 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=543719384851 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
+    "customerEmailStatus": "sent",
+    "emailsSent": {
+      "customerConfirmation": false,
+      "adminNotification": true,
+      "sentAt": "2026-09-12T12:04:15.263Z"
+    },
+    "adminEmailStatus": "sent"
+  },
+  {
+    "status": "paid",
+    "packageId": "starter",
+    "packageName": "Starter Pack",
+    "quantity": 1,
+    "price": 59.99,
+    "total": 59.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Apex Dental Studio",
+      "businessWebsite": "",
+      "businessEmail": "dr.apex@example.com",
+      "businessPhone": "555-0199",
+      "googleReviewUrl": "https://g.page/r/apex-dental",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Dr. Sarah Apex",
+      "shippingBusinessName": "Apex Dental Studio",
+      "addressLine1": "100 Market St",
+      "addressLine2": "",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94105",
+      "country": "United States"
+    },
+    "id": "RVT-20260912-0007",
+    "createdAt": "2026-09-12T12:19:26.471Z",
+    "updatedAt": "2026-09-12T12:19:30.056Z",
+    "sheetSyncStatus": "failed",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalTxnId": "TEST-TXN-MTYCR4QR",
+    "paymentMethod": "PayPal Sandbox / Test Simulation",
+    "paidAt": "2026-09-12T12:19:29.091Z",
+    "sheetSyncError": "Sheets API (403): Google Sheets API has not been used in project 543719384851 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=543719384851 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
+    "customerEmailStatus": "failed",
+    "customerEmailError": "Invalid `to` field. Please use our testing email address instead of domains like `example.com`. See our documentation for more information.",
+    "emailsSent": {
+      "customerConfirmation": false,
+      "adminNotification": true,
+      "sentAt": "2026-09-12T12:19:30.056Z"
+    },
+    "adminEmailStatus": "sent"
   }
 ]
