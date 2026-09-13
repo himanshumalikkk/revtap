@@ -300,5 +300,57 @@
       "sentAt": "2026-09-12T12:19:30.056Z"
     },
     "adminEmailStatus": "sent"
+  },
+  {
+    "status": "paid",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": true,
+    "business": {
+      "businessName": "Apex Dental Studio",
+      "businessWebsite": "",
+      "businessEmail": "test@example.com",
+      "businessPhone": "555-0199",
+      "googleReviewUrl": "https://g.page/r/example",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Dr. Sarah Jenkins",
+      "shippingBusinessName": "Apex Dental Studio",
+      "addressLine1": "123 Main St",
+      "addressLine2": "",
+      "city": "Austin",
+      "state": "TX",
+      "zipCode": "78701",
+      "country": "United States"
+    },
+    "id": "RVT-20260913-0001",
+    "createdAt": "2026-09-13T09:52:59.081Z",
+    "updatedAt": "2026-09-13T09:53:05.931Z",
+    "sheetSyncStatus": "failed",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalOrderId": "0SC53981LR342630J",
+    "paypalTxnId": "TEST-TXN-MTZMYPJL",
+    "paymentMethod": "PayPal Sandbox / Test Simulation",
+    "paidAt": "2026-09-13T09:53:04.977Z",
+    "sheetSyncError": "Sheets API (403): Google Sheets API has not been used in project 543719384851 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=543719384851 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
+    "customerEmailStatus": "failed",
+    "customerEmailError": "Invalid `to` field. Please use our testing email address instead of domains like `example.com`. See our documentation for more information.",
+    "emailsSent": {
+      "customerConfirmation": false,
+      "adminNotification": true,
+      "sentAt": "2026-09-13T09:53:05.931Z"
+    },
+    "adminEmailStatus": "sent"
   }
 ]

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import type { OrderRecord } from '../src/types';
-import { updateOrder } from './db';
+import { updateOrder } from './db.js';
 
 // Expected sheet columns
 export const GOOGLE_SHEET_COLUMNS = [

@@ -89,6 +89,11 @@ export function getOrderById(id: string): OrderRecord | undefined {
   return orders.find((o) => o.id.toLowerCase() === id.toLowerCase());
 }
 
+export function getOrderByPayPalOrderId(paypalOrderId: string): OrderRecord | undefined {
+  if (!paypalOrderId) return undefined;
+  return orders.find((o) => o.paypalOrderId === paypalOrderId);
+}
+
 export function createOrder(orderData: Omit<OrderRecord, 'id' | 'createdAt' | 'updatedAt' | 'sheetSyncStatus' | 'supplierInfo'>): OrderRecord {
   const id = generateOrderId();
   const now = new Date().toISOString();

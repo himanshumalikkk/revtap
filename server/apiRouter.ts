@@ -3,14 +3,21 @@ import {
   createOrder,
   getAllOrders,
   getOrderById,
+  getOrderByPayPalOrderId,
   updateOrder,
   saveContactInquiry,
   getAllInquiries,
-} from './db';
-import { getPayPalPaymentLinkForPackage, processPaidOrder } from './paypal';
-import { syncOrderToGoogleSheet, generateOrdersCsv } from './googleSheets';
-import { sendAdminContactNotification } from './email';
-import { handlePayPalWebhookRequest } from './paypalWebhook';
+} from './db.js';
+import {
+  createPayPalOrder,
+  capturePayPalOrder,
+  getPayPalPaymentLinkForPackage,
+  processPaidOrder,
+  getPayPalBaseUrl,
+} from './paypal.js';
+import { syncOrderToGoogleSheet, generateOrdersCsv } from './googleSheets.js';
+import { sendAdminContactNotification } from './email.js';
+import { handlePayPalWebhookRequest } from './paypalWebhook.js';
 import type { PackageId, BusinessInfo, ShippingInfo } from '../src/types';
 
 export const PACKAGES_CONFIG: Record<
@@ -53,11 +60,13 @@ apiRouter.get('/api/config', (req, res) => {
     siteName: process.env.VITE_SITE_NAME || 'RevTap',
     packages: PACKAGES_CONFIG,
     paypalConfig: {
+      hasClientId: Boolean(process.env.PAYPAL_CLIENT_ID),
+      hasClientSecret: Boolean(process.env.PAYPAL_CLIENT_SECRET),
+      hasWebhookId: Boolean(process.env.PAYPAL_WEBHOOK_ID),
+      mode: (process.env.PAYPAL_MODE || 'live').toLowerCase().trim(),
       hasStarterLink: Boolean(process.env.PAYPAL_STARTER_PAYMENT_LINK),
       hasBusinessLink: Boolean(process.env.PAYPAL_BUSINESS_PAYMENT_LINK),
       hasGrowthLink: Boolean(process.env.PAYPAL_GROWTH_PAYMENT_LINK),
-      hasClientId: Boolean(process.env.PAYPAL_CLIENT_ID),
-      hasWebhookId: Boolean(process.env.PAYPAL_WEBHOOK_ID),
     },
     googleSheetsConfigured: Boolean(
       process.env.GOOGLE_SHEET_ID &&
@@ -73,7 +82,7 @@ apiRouter.get('/api/config', (req, res) => {
 });
 
 // Create an Order (Sets status = payment_pending)
-apiRouter.post('/api/orders', (req, res) => {
+apiRouter.post('/api/orders', async (req, res) => {
   try {
     const body = req.body || {};
     const { packageId, business, shipping, isTestOrder } = body as {
@@ -166,15 +175,52 @@ apiRouter.post('/api/orders', (req, res) => {
       },
     });
 
-    // Retrieve official PayPal payment link or hosted checkout URL
-    const paymentLink = getPayPalPaymentLinkForPackage(packageId, newOrder.id);
+    // Determine public origin for return/cancel URLs
+    const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
+    const origin = `${protocol}://${host}`;
 
-    console.log(`[Order Created] Order ID: ${newOrder.id} - Pending Payment - Target: ${paymentLink}`);
+    const returnUrl = `${origin}/api/paypal/return?order_id=${encodeURIComponent(newOrder.id)}`;
+    const cancelUrl = `${origin}/api/paypal/cancel?order_id=${encodeURIComponent(newOrder.id)}`;
+
+    let approvalUrl: string | undefined = undefined;
+    let paypalOrderId: string | undefined = undefined;
+
+    const hasPayPalCredentials = Boolean(
+      process.env.PAYPAL_CLIENT_ID?.trim() && process.env.PAYPAL_CLIENT_SECRET?.trim()
+    );
+
+    if (hasPayPalCredentials) {
+      try {
+        const paypalOrder = await createPayPalOrder({
+          order: newOrder,
+          returnUrl,
+          cancelUrl,
+        });
+        approvalUrl = paypalOrder.approvalUrl;
+        paypalOrderId = paypalOrder.paypalOrderId;
+      } catch (err: any) {
+        console.error('[PayPal Orders API Creation Error]:', err);
+        if (newOrder.isTestOrder) {
+          approvalUrl = `/checkout/paypal-gateway?order_id=${encodeURIComponent(newOrder.id)}`;
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      console.warn('[PayPal Config Notice]: PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET not configured.');
+      const legacyLink = getPayPalPaymentLinkForPackage(packageId, newOrder.id);
+      approvalUrl = legacyLink || `/checkout/paypal-gateway?order_id=${encodeURIComponent(newOrder.id)}`;
+    }
+
+    console.log(`[Order Created] Order ID: ${newOrder.id} - Pending Payment - PayPal Order: ${paypalOrderId || 'N/A'}`);
 
     return res.status(201).json({
       success: true,
-      order: newOrder,
-      paymentLink,
+      order: getOrderById(newOrder.id) || newOrder,
+      paypalOrderId,
+      approvalUrl,
+      paymentLink: approvalUrl, // Maintain backward compatibility for frontend
     });
   } catch (err: any) {
     console.error('[Create Order Error]:', err);
@@ -182,6 +228,55 @@ apiRouter.post('/api/orders', (req, res) => {
       error: err.message || 'Unable to initialize order. Please verify your details and try again.',
     });
   }
+});
+
+// PayPal Return URL Handler - Captures PayPal order and redirects user to Success view
+apiRouter.get('/api/paypal/return', async (req, res) => {
+  try {
+    const orderId = (req.query.order_id as string) || '';
+    const token = (req.query.token as string) || ''; // PayPal Order ID token
+
+    let order = orderId ? getOrderById(orderId) : undefined;
+    if (!order && token) {
+      order = getOrderByPayPalOrderId(token);
+    }
+
+    if (!order) {
+      return res.redirect('/?status=error&error_msg=Order+not+found');
+    }
+
+    if (order.status === 'paid') {
+      return res.redirect(`/?order_id=${encodeURIComponent(order.id)}&status=success`);
+    }
+
+    const paypalOrderIdToCapture = token || order.paypalOrderId;
+    if (!paypalOrderIdToCapture) {
+      return res.redirect(`/?order_id=${encodeURIComponent(order.id)}&status=error&error_msg=Missing+PayPal+Order+ID`);
+    }
+
+    const captureResult = await capturePayPalOrder(paypalOrderIdToCapture);
+    if (captureResult.success) {
+      return res.redirect(`/?order_id=${encodeURIComponent(order.id)}&status=success`);
+    } else {
+      return res.redirect(`/?order_id=${encodeURIComponent(order.id)}&status=error&error_msg=${encodeURIComponent(captureResult.error || 'Payment capture failed')}`);
+    }
+  } catch (err: any) {
+    console.error('[PayPal Return Handler Exception]:', err);
+    return res.redirect(`/?status=error&error_msg=${encodeURIComponent(err.message || 'Payment verification failed')}`);
+  }
+});
+
+// PayPal Cancel URL Handler - Handles customer cancellation on PayPal checkout
+apiRouter.get('/api/paypal/cancel', (req, res) => {
+  const orderId = (req.query.order_id as string) || '';
+  if (orderId) {
+    const order = getOrderById(orderId);
+    if (order && order.status === 'payment_pending') {
+      updateOrder(order.id, { status: 'cancelled' });
+    }
+    return res.redirect(`/?order_id=${encodeURIComponent(orderId)}&status=cancel`);
+  }
+  return res.redirect('/?status=cancel');
 });
 
 // Fetch Order By ID
@@ -193,11 +288,50 @@ apiRouter.get('/api/orders/:id', (req, res) => {
   return res.json({ order });
 });
 
-// Client Payment Confirmation endpoint - strictly requires webhook verification
+// Secure Server-side Capture Endpoint for a PayPal Order
+apiRouter.post('/api/orders/:id/capture', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = getOrderById(id);
+    if (!order) {
+      return res.status(404).json({ error: `Order ${id} not found.` });
+    }
+
+    if (order.status === 'paid') {
+      return res.json({
+        success: true,
+        order,
+        message: 'Order was already processed and verified as paid.',
+      });
+    }
+
+    const paypalOrderId = req.body?.paypalOrderId || order.paypalOrderId;
+    if (!paypalOrderId) {
+      return res.status(400).json({ error: 'No PayPal Order ID associated with this order.' });
+    }
+
+    const result = await capturePayPalOrder(paypalOrderId);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error || 'Payment capture failed.' });
+    }
+
+    const updatedOrder = getOrderById(id);
+    return res.json({
+      success: true,
+      order: updatedOrder,
+      captureId: result.captureId,
+      message: 'Order successfully captured and verified as paid.',
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Capture exception occurred.' });
+  }
+});
+
+// Client Payment Confirmation endpoint - strictly requires verified payment/capture
 apiRouter.post('/api/orders/:id/confirm-payment', (req, res) => {
-  // Orders are only marked as paid via verified PayPal webhooks
+  // Orders cannot be marked as paid directly from untrusted client requests
   return res.status(400).json({
-    error: 'Orders cannot be marked as paid directly from the browser. Payments must be verified via the PayPal Webhook.',
+    error: 'Orders cannot be marked as paid directly from the browser. Payments must be captured via the PayPal REST API or verified via PayPal Webhooks.',
   });
 });
 

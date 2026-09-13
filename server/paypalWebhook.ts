@@ -1,7 +1,7 @@
 import type { IncomingHttpHeaders } from 'http';
 import type { OrderRecord, PackageId } from '../src/types';
-import { getOrderById, updateOrder, createOrder } from './db';
-import { processPaidOrder } from './paypal';
+import { getOrderById, getOrderByPayPalOrderId, updateOrder, createOrder } from './db.js';
+import { processPaidOrder, capturePayPalOrder } from './paypal.js';
 
 interface WebhookVerificationResult {
   isValid: boolean;
@@ -197,7 +197,13 @@ export async function verifyPayPalWebhookSignature(
 /**
  * Extracts RevTap Order ID and PayPal Transaction ID from PayPal webhook resource
  */
-export function extractOrderAndTxnId(event: any): { orderId?: string; txnId?: string; amount?: string; currency?: string } {
+export function extractOrderAndTxnId(event: any): {
+  orderId?: string;
+  paypalOrderId?: string;
+  txnId?: string;
+  amount?: string;
+  currency?: string;
+} {
   const resource = event?.resource || {};
   let orderId: string | undefined = undefined;
 
@@ -227,11 +233,15 @@ export function extractOrderAndTxnId(event: any): { orderId?: string; txnId?: st
     } catch {}
   }
 
-  const txnId = resource.id || resource.parent_payment || event.id || `PP-${Date.now()}`;
+  const paypalOrderId =
+    resource.supplementary_data?.related_ids?.order_id ||
+    (typeof event?.event_type === 'string' && event.event_type.startsWith('CHECKOUT.ORDER') ? resource.id : undefined);
+
+  const txnId = resource.id || resource.parent_payment || event?.id || `PP-${Date.now()}`;
   const amount = resource.amount?.value || resource.total?.value || resource.amount;
   const currency = resource.amount?.currency_code || resource.total?.currency_code || 'USD';
 
-  return { orderId, txnId, amount, currency };
+  return { orderId, paypalOrderId, txnId, amount, currency };
 }
 
 /**
@@ -353,18 +363,43 @@ export async function handlePayPalWebhookRequest(req: any, res: any): Promise<vo
 
   console.log(`[PayPal Webhook Verified] Event ${eventId} (${eventType}) passed signature validation.`);
 
-  // 4. Process Payment Events
+  // 4. Handle CHECKOUT.ORDER.APPROVED: trigger backend capture if not captured yet
+  if (eventType === 'CHECKOUT.ORDER.APPROVED') {
+    const paypalOrderId = eventBody.resource?.id;
+    if (paypalOrderId) {
+      console.log(`[PayPal Webhook] Received CHECKOUT.ORDER.APPROVED for ${paypalOrderId}. Triggering backend capture...`);
+      const captureResult = await capturePayPalOrder(paypalOrderId);
+      return res.status(200).json({
+        received: true,
+        captured: captureResult.success,
+        orderId: captureResult.order?.id,
+        message: captureResult.success ? 'Order captured successfully via webhook' : captureResult.error,
+        eventId,
+      });
+    }
+  }
+
+  // 5. Process Payment Success Events (PAYMENT.CAPTURE.COMPLETED is the primary fulfillment event)
   const paymentSuccessEvents = [
     'PAYMENT.CAPTURE.COMPLETED',
-    'CHECKOUT.ORDER.APPROVED',
     'CHECKOUT.ORDER.COMPLETED',
     'PAYMENT.SALE.COMPLETED',
   ];
 
   if (paymentSuccessEvents.includes(eventType)) {
-    const { orderId, txnId, amount, currency } = extractOrderAndTxnId(eventBody);
+    const { orderId: rawOrderId, paypalOrderId, txnId, amount, currency } = extractOrderAndTxnId(eventBody);
+    let orderId = rawOrderId;
 
-    if (!orderId) {
+    let order: OrderRecord | undefined = undefined;
+    if (orderId) {
+      order = getOrderById(orderId);
+    }
+    if (!order && paypalOrderId) {
+      order = getOrderByPayPalOrderId(paypalOrderId);
+      if (order) orderId = order.id;
+    }
+
+    if (!orderId && !order) {
       console.warn(`[PayPal Webhook Note]: Webhook ${eventId} verified, but no RevTap order ID found in payload (Resource ID: ${eventBody.resource?.id || 'N/A'}). Acknowledging receipt.`);
       return res.status(200).json({
         received: true,
@@ -375,48 +410,83 @@ export async function handlePayPalWebhookRequest(req: any, res: any): Promise<vo
 
     console.log(`[PayPal Webhook Order Matched]: Order ID ${orderId}, Txn ID: ${txnId}, Amount: ${amount || 'N/A'} ${currency || 'USD'}`);
 
-    let order = getOrderById(orderId);
-    if (!order) {
+    if (!order && orderId) {
       console.log(`[PayPal Webhook]: Order ${orderId} not found in local memory cache. Reconstructing from verified PayPal payload...`);
       order = recoverOrderFromPayPalPayload(orderId, eventBody);
     }
 
-    // Prevent duplicate processing if already marked as paid
+    if (!order) {
+      return res.status(200).json({
+        received: true,
+        message: `Order could not be resolved for orderId: ${orderId}`,
+        eventId,
+      });
+    }
+
+    // Prevent duplicate processing if already marked as paid (Strict Idempotency)
     if (order.status === 'paid') {
-      console.log(`[PayPal Webhook]: Order ${orderId} is already marked as PAID. Skipping duplicate processing.`);
+      console.log(`[PayPal Webhook]: Order ${order.id} is already marked as PAID. Skipping duplicate processing.`);
       return res.status(200).json({
         success: true,
-        orderId,
+        orderId: order.id,
         message: 'Order was already processed and marked as paid.',
         alreadyPaid: true,
       });
     }
 
     // Process order: updates status to paid, prevents duplicates, syncs to Google Sheets, sends customer and admin emails
-    const result = await processPaidOrder(orderId, txnId, 'PayPal Webhook');
+    const result = await processPaidOrder(order.id, txnId, 'PayPal Webhook');
 
     return res.status(200).json({
       success: result.success,
-      orderId,
+      orderId: order.id,
       txnId,
       message: result.message,
       event: eventType,
     });
   }
 
-  // Handle Refund / Dispute / Cancellation events if needed
-  if (['PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED', 'PAYMENT.CAPTURE.DENIED'].includes(eventType)) {
-    const { orderId, txnId } = extractOrderAndTxnId(eventBody);
-    if (orderId) {
-      console.log(`[PayPal Webhook Refund/Reversal]: Updating order ${orderId} status to refunded.`);
-      updateOrder(orderId, {
+  // Handle Refund / Dispute / Cancellation events
+  if (['PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED'].includes(eventType)) {
+    const { orderId, paypalOrderId } = extractOrderAndTxnId(eventBody);
+    const targetOrder = (orderId && getOrderById(orderId)) || (paypalOrderId && getOrderByPayPalOrderId(paypalOrderId));
+    if (targetOrder) {
+      console.log(`[PayPal Webhook Refund/Reversal]: Updating order ${targetOrder.id} status to refunded.`);
+      updateOrder(targetOrder.id, {
         status: 'refunded',
         updatedAt: new Date().toISOString(),
       });
     }
     return res.status(200).json({
       received: true,
-      message: `Order reversal acknowledged for ${orderId || 'unknown order'}`,
+      message: `Order reversal acknowledged for ${targetOrder?.id || orderId || 'unknown order'}`,
+      eventId,
+    });
+  }
+
+  if (['PAYMENT.CAPTURE.DENIED', 'CHECKOUT.ORDER.CANCELLED'].includes(eventType)) {
+    const { orderId, paypalOrderId } = extractOrderAndTxnId(eventBody);
+    const targetOrder = (orderId && getOrderById(orderId)) || (paypalOrderId && getOrderByPayPalOrderId(paypalOrderId));
+    if (targetOrder && targetOrder.status === 'payment_pending') {
+      console.log(`[PayPal Webhook Denied/Cancelled]: Updating order ${targetOrder.id} status to cancelled.`);
+      updateOrder(targetOrder.id, {
+        status: 'cancelled',
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    return res.status(200).json({
+      received: true,
+      message: `Order cancellation/denial acknowledged for ${targetOrder?.id || orderId || 'unknown order'}`,
+      eventId,
+    });
+  }
+
+  if (eventType === 'PAYMENT.CAPTURE.PENDING') {
+    const { orderId, paypalOrderId } = extractOrderAndTxnId(eventBody);
+    console.log(`[PayPal Webhook Pending]: Payment capture pending for ${orderId || paypalOrderId || 'order'}.`);
+    return res.status(200).json({
+      received: true,
+      message: 'Payment capture pending acknowledgement.',
       eventId,
     });
   }

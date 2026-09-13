@@ -1,5 +1,5 @@
 import type { OrderRecord, ContactInquiry } from '../src/types';
-import { updateOrder } from './db';
+import { updateOrder } from './db.js';
 
 /**
  * Sends an email using Resend REST API.

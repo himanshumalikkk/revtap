@@ -1,5 +1,5 @@
 import express from 'express';
-import { apiRouter } from '../server/apiRouter';
+import { apiRouter } from '../server/apiRouter.js';
 
 const app = express();
 app.set('trust proxy', 1);
