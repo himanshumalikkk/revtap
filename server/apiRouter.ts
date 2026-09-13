@@ -11,7 +11,6 @@ import {
 import {
   createPayPalOrder,
   capturePayPalOrder,
-  getPayPalPaymentLinkForPackage,
   processPaidOrder,
   getPayPalBaseUrl,
 } from './paypal.js';
@@ -64,9 +63,6 @@ apiRouter.get('/api/config', (req, res) => {
       hasClientSecret: Boolean(process.env.PAYPAL_CLIENT_SECRET),
       hasWebhookId: Boolean(process.env.PAYPAL_WEBHOOK_ID),
       mode: (process.env.PAYPAL_MODE || 'live').toLowerCase().trim(),
-      hasStarterLink: Boolean(process.env.PAYPAL_STARTER_PAYMENT_LINK),
-      hasBusinessLink: Boolean(process.env.PAYPAL_BUSINESS_PAYMENT_LINK),
-      hasGrowthLink: Boolean(process.env.PAYPAL_GROWTH_PAYMENT_LINK),
     },
     googleSheetsConfigured: Boolean(
       process.env.GOOGLE_SHEET_ID &&
@@ -178,54 +174,51 @@ apiRouter.post('/api/orders', async (req, res) => {
     // Determine public origin for return/cancel URLs
     const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
-    const origin = `${protocol}://${host}`;
+    
+    let origin = `${protocol}://${host}`;
+    if (process.env.APP_URL && /^https?:\/\//i.test(process.env.APP_URL)) {
+      origin = process.env.APP_URL.replace(/\/$/, '');
+    } else if (process.env.VERCEL_URL) {
+      origin = `https://${process.env.VERCEL_URL}`;
+    }
 
     const returnUrl = `${origin}/api/paypal/return?order_id=${encodeURIComponent(newOrder.id)}`;
     const cancelUrl = `${origin}/api/paypal/cancel?order_id=${encodeURIComponent(newOrder.id)}`;
 
-    let approvalUrl: string | undefined = undefined;
-    let paypalOrderId: string | undefined = undefined;
+    // Verify PayPal REST API credentials exist
+    const clientId = process.env.PAYPAL_CLIENT_ID?.trim();
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET?.trim();
 
-    const hasPayPalCredentials = Boolean(
-      process.env.PAYPAL_CLIENT_ID?.trim() && process.env.PAYPAL_CLIENT_SECRET?.trim()
-    );
-
-    if (hasPayPalCredentials) {
-      try {
-        const paypalOrder = await createPayPalOrder({
-          order: newOrder,
-          returnUrl,
-          cancelUrl,
-        });
-        approvalUrl = paypalOrder.approvalUrl;
-        paypalOrderId = paypalOrder.paypalOrderId;
-      } catch (err: any) {
-        console.error('[PayPal Orders API Creation Error]:', err);
-        if (newOrder.isTestOrder) {
-          approvalUrl = `/checkout/paypal-gateway?order_id=${encodeURIComponent(newOrder.id)}`;
-        } else {
-          throw err;
-        }
-      }
-    } else {
-      console.warn('[PayPal Config Notice]: PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET not configured.');
-      const legacyLink = getPayPalPaymentLinkForPackage(packageId, newOrder.id);
-      approvalUrl = legacyLink || `/checkout/paypal-gateway?order_id=${encodeURIComponent(newOrder.id)}`;
+    if (!clientId || !clientSecret) {
+      console.error('[PayPal Config Error]: PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET not configured on server.');
+      return res.status(500).json({
+        error: 'PayPal REST API credentials (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET) are not configured on the server. Please check your production environment variables.',
+      });
     }
 
-    console.log(`[Order Created] Order ID: ${newOrder.id} - Pending Payment - PayPal Order: ${paypalOrderId || 'N/A'}`);
+    // Call PayPal Live REST Orders API POST /v2/checkout/orders
+    const paypalOrder = await createPayPalOrder({
+      order: newOrder,
+      returnUrl,
+      cancelUrl,
+    });
+
+    const approvalUrl = paypalOrder.approvalUrl;
+    const paypalOrderId = paypalOrder.paypalOrderId;
+
+    console.log(`[Order Created] Order ID: ${newOrder.id} - Pending Payment - PayPal Order: ${paypalOrderId}`);
 
     return res.status(201).json({
       success: true,
       order: getOrderById(newOrder.id) || newOrder,
       paypalOrderId,
       approvalUrl,
-      paymentLink: approvalUrl, // Maintain backward compatibility for frontend
+      paymentLink: approvalUrl, // Provided for frontend checkout redirect
     });
   } catch (err: any) {
     console.error('[Create Order Error]:', err);
     return res.status(500).json({
-      error: err.message || 'Unable to initialize order. Please verify your details and try again.',
+      error: err.message || 'Unable to initialize order with PayPal. Please try again.',
     });
   }
 });
@@ -335,8 +328,15 @@ apiRouter.post('/api/orders/:id/confirm-payment', (req, res) => {
   });
 });
 
-// Preview / Simulation Endpoint: lets store owners and testers test the full paid order flow
+// Sandbox / Local Testing Simulation Endpoint: Strictly isolated from production
 apiRouter.post('/api/orders/:id/simulate-payment', async (req, res) => {
+  const mode = (process.env.PAYPAL_MODE || 'live').toLowerCase().trim();
+  if (process.env.NODE_ENV === 'production' && mode !== 'sandbox') {
+    return res.status(403).json({
+      error: 'Simulated payments are strictly disabled in production. Checkout must be completed through real PayPal Live approval.',
+    });
+  }
+
   const { id } = req.params;
   const simulatedTxn = `TEST-TXN-${Date.now().toString(36).toUpperCase()}`;
   const result = await processPaidOrder(id, simulatedTxn, 'PayPal Sandbox / Test Simulation');

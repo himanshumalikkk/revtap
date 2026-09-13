@@ -352,5 +352,125 @@
       "sentAt": "2026-09-13T09:53:05.931Z"
     },
     "adminEmailStatus": "sent"
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "starter",
+    "packageName": "Starter Pack",
+    "quantity": 1,
+    "price": 59.99,
+    "total": 59.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Apex Dental Clinic",
+      "businessWebsite": "https://apexdental.com",
+      "businessEmail": "info@apexdental.com",
+      "businessPhone": "(555) 234-5678",
+      "googleReviewUrl": "https://g.page/r/CbG9Jkexample/review",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Dr. Sarah Apex",
+      "shippingBusinessName": "Apex Dental",
+      "addressLine1": "100 Market St",
+      "addressLine2": "",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94105",
+      "country": "United States"
+    },
+    "id": "RVT-20260913-0002",
+    "createdAt": "2026-09-13T10:27:09.346Z",
+    "updatedAt": "2026-09-13T10:27:10.364Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalOrderId": "37R85585JC350474P"
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "business",
+    "packageName": "Business Pack",
+    "quantity": 2,
+    "price": 99.99,
+    "total": 99.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Boutique Cafe",
+      "businessWebsite": "https://boutiquecafe.com",
+      "businessEmail": "hello@boutiquecafe.com",
+      "businessPhone": "(555) 876-5432",
+      "googleReviewUrl": "https://g.page/r/testcafe/review",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Maria Santos",
+      "shippingBusinessName": "Boutique Cafe",
+      "addressLine1": "250 Main St",
+      "addressLine2": "",
+      "city": "Austin",
+      "state": "TX",
+      "zipCode": "78701",
+      "country": "United States"
+    },
+    "id": "RVT-20260913-0003",
+    "createdAt": "2026-09-13T10:27:15.449Z",
+    "updatedAt": "2026-09-13T10:27:16.083Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalOrderId": "1C988588TE6231627"
+  },
+  {
+    "status": "payment_pending",
+    "packageId": "growth",
+    "packageName": "Growth Pack",
+    "quantity": 5,
+    "price": 199.99,
+    "total": 199.99,
+    "currency": "USD",
+    "isTestOrder": false,
+    "business": {
+      "businessName": "Apex Fitness Hub",
+      "businessWebsite": "https://apexfitness.com",
+      "businessEmail": "info@apexfitness.com",
+      "businessPhone": "(555) 999-8888",
+      "googleReviewUrl": "https://g.page/r/testgrowth/review",
+      "brandingNotes": ""
+    },
+    "shipping": {
+      "fullName": "Marcus Vance",
+      "shippingBusinessName": "Apex Fitness",
+      "addressLine1": "700 Broadway",
+      "addressLine2": "",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "10003",
+      "country": "United States"
+    },
+    "id": "RVT-20260913-0004",
+    "createdAt": "2026-09-13T10:27:19.324Z",
+    "updatedAt": "2026-09-13T10:27:19.811Z",
+    "sheetSyncStatus": "pending",
+    "supplierInfo": {
+      "supplierName": "RevTap Direct NFC Partner",
+      "supplierOrdered": false,
+      "supplierStatus": "Pending",
+      "delivered": false,
+      "notes": "Standard NFC + QR Custom Google Review Sign"
+    },
+    "paypalOrderId": "6V2649568V702601P"
   }
 ]

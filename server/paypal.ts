@@ -353,26 +353,3 @@ export async function processPaidOrder(
   const finalOrder = getOrderById(orderId) || updated;
   return { success: true, order: finalOrder, message: 'Order successfully marked as paid' };
 }
-
-/**
- * Deprecated legacy link fallback - preserved for backward compatibility
- * but superseded by createPayPalOrder
- */
-export function getPayPalPaymentLinkForPackage(packageId: PackageId, orderId: string): string {
-  let baseLink = '';
-
-  if (packageId === 'starter') {
-    baseLink = process.env.PAYPAL_STARTER_PAYMENT_LINK?.trim() || '';
-  } else if (packageId === 'business') {
-    baseLink = process.env.PAYPAL_BUSINESS_PAYMENT_LINK?.trim() || '';
-  } else if (packageId === 'growth') {
-    baseLink = process.env.PAYPAL_GROWTH_PAYMENT_LINK?.trim() || '';
-  }
-
-  if (baseLink) {
-    const separator = baseLink.includes('?') ? '&' : '?';
-    return `${baseLink}${separator}custom=${encodeURIComponent(orderId)}`;
-  }
-
-  return `/checkout/paypal-gateway?order_id=${encodeURIComponent(orderId)}`;
-}

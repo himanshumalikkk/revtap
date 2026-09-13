@@ -13,6 +13,7 @@ import {
   Sparkles,
   AlertCircle,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import type { PackageId, BusinessInfo, ShippingInfo, OrderRecord } from '../types';
 import { CardMockup3D } from './CardMockup3D';
@@ -99,13 +100,9 @@ export const OrderModal: React.FC<OrderModalProps> = ({
   const [showUrlGuide, setShowUrlGuide] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isTestOrder, setIsTestOrder] = useState(false);
-
-  // Payment transition state
-  const [createdOrder, setCreatedOrder] = useState<OrderRecord | null>(null);
-  const [paypalLink, setPaypalLink] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     if (initialPackageId) {
@@ -226,17 +223,17 @@ export const OrderModal: React.FC<OrderModalProps> = ({
     }
   };
 
-  // Submit Order and send to PayPal Checkout
+  // Submit Order and redirect directly to PayPal Live REST Checkout
   const handleProceedToPayment = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
+    setRedirectUrl(null);
 
     try {
       const payload = {
         packageId: selectedPackage,
         business: businessInfo,
         shipping: shippingInfo,
-        isTestOrder,
       };
 
       const response = await fetch('/api/orders', {
@@ -245,55 +242,33 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         body: JSON.stringify(payload),
       });
 
-      let errorData: any = null;
+      let resData: any = null;
       try {
-        errorData = await response.json();
+        resData = await response.json();
       } catch {
         const text = await response.text().catch(() => '');
-        errorData = { error: text || `Server error (${response.status})` };
+        resData = { error: text || `Server error (${response.status})` };
       }
 
       if (!response.ok) {
-        throw new Error(errorData?.error || `Order creation failed (HTTP ${response.status}). Please review your details and try again.`);
+        throw new Error(resData?.error || `Order creation failed (HTTP ${response.status}). Please review your details and try again.`);
       }
 
-      const data = errorData;
-      const order = data.order as OrderRecord;
-      const targetLink = data.paymentLink as string;
-
-      setCreatedOrder(order);
-      setPaypalLink(targetLink);
-      setShowPaymentModal(true);
-    } catch (err: any) {
-      setSubmitError(err.message || 'An error occurred. Please try again.');
-      // Keep user in the modal so they can fix any inputs rather than prematurely showing error page
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle Simulation in Preview Mode
-  const handleSimulatePaymentCompletion = async () => {
-    if (!createdOrder) return;
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/orders/${createdOrder.id}/simulate-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        throw new Error('Simulation failed.');
+      const targetUrl = resData?.approvalUrl || resData?.paymentLink;
+      if (!targetUrl || typeof targetUrl !== 'string' || !targetUrl.startsWith('https://')) {
+        throw new Error('PayPal did not return a valid checkout approval URL. Please try again.');
       }
 
-      const resData = await response.json();
-      setShowPaymentModal(false);
-      onClose();
-      onOrderSuccess(resData.order);
+      setIsRedirecting(true);
+      setRedirectUrl(targetUrl);
+
+      // Immediately transfer customer to PayPal Live Checkout
+      window.location.href = targetUrl;
     } catch (err: any) {
-      setSubmitError(err.message);
-    } finally {
+      console.error('[PayPal Checkout Error]:', err);
+      setSubmitError(err.message || 'An error occurred while connecting to PayPal. Please try again.');
       setIsSubmitting(false);
+      setIsRedirecting(false);
     }
   };
 
@@ -898,24 +873,25 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                   </div>
                 </div>
 
-                {/* Test Mode Toggle Option */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-100/90 border border-zinc-200/90 text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <input
-                      type="checkbox"
-                      id="order-test-mode"
-                      checked={isTestOrder}
-                      onChange={(e) => setIsTestOrder(e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <label htmlFor="order-test-mode" className="font-bold text-zinc-800 cursor-pointer select-none">
-                      Enable Test Order Mode
-                    </label>
+                {/* PayPal Redirect Status Notification */}
+                {isRedirecting && redirectUrl && (
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-center space-y-2 animate-in fade-in">
+                    <div className="flex items-center justify-center gap-2 text-blue-900 font-bold text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                      <span>Redirecting you to PayPal Checkout...</span>
+                    </div>
+                    <p className="text-xs text-blue-700">
+                      If your browser does not redirect automatically,{' '}
+                      <a
+                        href={redirectUrl}
+                        className="font-bold underline text-blue-900 hover:text-blue-950 inline-flex items-center gap-1"
+                      >
+                        <span>click here to proceed to PayPal</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>.
+                    </p>
                   </div>
-                  <span className="text-[11px] text-zinc-500 font-medium">
-                    {isTestOrder ? 'Tagged as test simulation' : 'Standard live order'}
-                  </span>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -926,7 +902,8 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               <button
                 type="button"
                 onClick={handleBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-bold hover:bg-zinc-100 transition-colors cursor-pointer"
+                disabled={isSubmitting || isRedirecting}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-bold hover:bg-zinc-100 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -948,11 +925,19 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               <button
                 type="button"
                 onClick={handleProceedToPayment}
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all shadow-md active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                disabled={isSubmitting || isRedirecting}
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all shadow-md active:scale-[0.98] disabled:opacity-60 cursor-pointer"
               >
-                {isSubmitting ? (
-                  <span>Saving Order...</span>
+                {isRedirecting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Redirecting to PayPal...</span>
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Creating Order...</span>
+                  </>
                 ) : (
                   <>
                     <span>CONTINUE TO SECURE PAYMENT</span>
@@ -970,82 +955,6 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         isOpen={showUrlGuide}
         onClose={() => setShowUrlGuide(false)}
       />
-
-      {/* PayPal Payment Transition / Gateway Modal */}
-      {showPaymentModal && createdOrder && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white border border-zinc-200 p-6 sm:p-8 shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-6 h-6" />
-            </div>
-
-            <h3 className="text-xl font-extrabold text-zinc-950">
-              Complete Payment with PayPal
-            </h3>
-            <p className="text-xs text-zinc-500 mt-1">
-              Order ID: <strong className="font-mono text-zinc-800">{createdOrder.id}</strong> • Total: <strong>${createdOrder.total.toFixed(2)} USD</strong>
-            </p>
-
-            <div className="my-6 p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-left text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Selected Pack:</span>
-                <span className="font-bold text-zinc-900">{createdOrder.packageName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Business Name:</span>
-                <span className="font-semibold text-zinc-900">{createdOrder.business.businessName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Order Status:</span>
-                <span className="font-bold uppercase text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                  payment_pending
-                </span>
-              </div>
-            </div>
-
-            {/* Official PayPal Hosted Link Action */}
-            <div className="space-y-3">
-              {paypalLink && !paypalLink.includes('paypal-gateway') ? (
-                <a
-                  href={paypalLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0070BA] hover:bg-[#003087] text-white font-bold text-sm transition-all shadow-md"
-                >
-                  <span>Pay Now on PayPal.com</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              ) : (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 text-left">
-                  <div className="font-bold mb-1">Sandbox / Preview Environment:</div>
-                  Store owner has not yet attached a live PayPal hosted link in <code className="font-mono text-zinc-900 font-bold">.env.example</code> (PAYPAL_{selectedPackage.toUpperCase()}_PAYMENT_LINK).
-                </div>
-              )}
-
-              {/* Instant Verification Simulation button */}
-              <button
-                type="button"
-                onClick={handleSimulatePaymentCompletion}
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Check className="w-4 h-4" />
-                <span>Simulate Successful Payment & Test Sync</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPaymentModal(false);
-                }}
-                className="text-xs text-zinc-500 hover:text-zinc-800 underline block mx-auto pt-2 cursor-pointer"
-              >
-                Back to Order Details
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
